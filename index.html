@@ -28,6 +28,24 @@
 	a {
 		text-decoration: none;
 	}
+	.clickable {
+		cursor: pointer;
+		transition: transform 0.3s ease;
+	}
+	.clickable.clicked {
+		animation: pop 0.3s ease;
+    }
+	@keyframes pop {
+		0% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(0.97);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
   </style>
 </head>
 <body>
@@ -39,10 +57,10 @@
 				<h3 class="text-center fs-1" style="font-family:Candara; align-self:center">ANAND ADVANI</h3>
 				<p class="text-center fs-5">Contact: <a href="mailto:anand_advani@brown.edu" target="_blank">anand_advani@brown.edu</a><br>
 				IG: <a href="https://www.instagram.com/anand__advani/" target="_blank">@anand__advani</a><br>
-				<a href="assets/index/Anand Resume Spring 2024.pdf">&gt;&gt; Resume &lt;&lt;</a></p>
+				<a href="assets/index/Anand Resume Spring 2024.pdf" download>&gt;&gt; Resume &lt;&lt;</a></p>
 			</div>
 			<div class="col-sm" style="font-family:Comic Sans MS">
-				<p class="fs-5">Hey! I'm Anand, an undergrad at Brown University. I'm interested in
+				<p class="fs-5">Hey! I'm Anand, an undergrad at Brown University. I dabble in
 				<a href="https://web.stanford.edu/~jurafsky/slp3" target="_blank">NLP</a> and 
 				<a href="https://www.stat.cmu.edu/~larry/all-of-statistics/" target="_blank">applied math</a>, 
 				<!-- Mauch is no longer available (???) - https://archive.org/download/undergraduatemathematicstexts/SeanMauch%20-%20Introduction%20To%20Methods%20
@@ -56,7 +74,7 @@
 						<a class="nav-link fs-5" href="blog/blog.html">blog</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link fs-5" href="#">dead link if you like clicking things</a>
+						<a class="nav-link fs-5 clickable" href="#">dead link if you like clicking things</a>
 					</li>
 				</ul>
 			</div>
