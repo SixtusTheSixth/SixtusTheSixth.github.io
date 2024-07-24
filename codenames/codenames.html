@@ -132,15 +132,16 @@
             <p>I'm not going to go into the details of how these vectors are found here. I'll just say that nowadays, word vectors tend to be derived from the first layer
                 of large language models, and before that there were two popular (related) statistical word vector models, word2vec and GloVe.
             </p>
-            <p>I use pre-trained GloVe vectors here, and as described in the <a href="https://nlp.stanford.edu/pubs/glove.pdf">paper</a>. Specifically, I'm
-                using the 50-dimensional vectors trained on a 6 billion-word dataset with a vocabulary of ~400,000 (from the 
+            <p>I use pre-trained GloVe vectors here. Specifically, I'm
+                using 50-dimensional vectors trained on a 6 billion-word dataset with a vocabulary of ~400,000 (from the 
                 <a href="https://nlp.stanford.edu/projects/glove/">official website</a>), which I think is definitely enough for Codenames.
                 Also, since this is a static website, I'm actually loading all the vectors into your browser and running a Python script on them, so that's probably 
-                taking at least a couple hundred megabytes of your RAM (sorry!). I've tried to mitigate this by deleting
+                taking at least a couple hundred megabytes of your RAM (sorry! it was a lot worse before). I've tried to mitigate this by deleting
                 the vectors for a lot of weird super-rare words and numbers, leaving a vocabulary of ~73,300.
             </p>
             <p>
-                As described in the GloVe paper (on page 8), I'm calculating similarity scores between two words by taking the cosine similarity between their word vectors
+                As described in the GloVe <a href="https://nlp.stanford.edu/pubs/glove.pdf">paper</a> (on page 8), I'm calculating similarity scores between two words by 
+                taking the cosine similarity between their word vectors
                 (= dot product divided by product of the vectors' magnitudes). But first, I normalize each element of the vector along the entire vocab; that is, if the
                 31st element of each word's vector is in the range 1&ndash;5, then I would multiply the 31st each vector by the same number so that the sum of their squares
                 add up to 1. They would then be roughly in the range 0.001&ndash;0.005 (if the vocabulary size is 400,000).
