@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Blog Post</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            background-image: url('blog_assets/common/paper_bg2.jpeg');
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 80%;
+            height: 60px;
+            /* Set the fixed height of the footer here */
+            /* background-color: #f5f5f5; */
+        }
+
+        .row {
+            height: 100%;
+            justify-content: left;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        a {
+            text-decoration: none;
+            font-family:Candara, Verdana, sans-serif;
+        }
+        p {
+            font-family:Candara, Verdana, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row fs-4 fw-bold" style="margin-top: 2%">
+            <p>Thoughts on LLM use cases</p>
+        </div>
+        <div class="row fs-5">
+            <p>As we approach the two-year mark of the AI hype initiated by the release of ChatGPT in November 2022 (seems like so long ago…), 
+                nearly every person with internet access has an opinion on whether large language models are unoriginal or powerful enough to replace us. 
+                Countless <a href="https://www.key4biz.it/wp-content/uploads/2023/03/Global-Economics-Analyst_-The-Potentially-Large-Effects-of-Artificial-Intelligence-on-Economic-Growth-Briggs_Kodnani.pdf">studies</a> 
+                have enumerated throngs of industries which they proclaim will be upended by the AI revolution - marketing, journalism, 
+                wealth management, legal services - but they never seem to point to specific use cases of LLMs on the prompt-able level.</p>
+            <p>
+                This article is not about my opinion that LLMs are vastly overhyped, although I do believe that they are much less impressive in 
+                the context of the past 15 years of rapid progress in artificial intelligence. AI systems were already firmly integrated into our 
+                personal lives, from face and eye fingerprinting, to social media and content recommendations, to navigation applications. 
+            </p>
+            <p>
+                This article is about my opinions on how <i>current</i> effective use cases of large language models can be categorized. 
+                I believe LLMs, as they stand, are useful for six general areas: <b>search</b>, <b>administration</b>, <b>debugging</b>, <b>interfacing</b>, 
+                <b>elementary teaching</b>, and <b>language</b>. It is also important to note the main drawbacks of LLMs that reduce their effectiveness in 
+                these and other areas: <b>hallucination</b>, <b>logical reasoning</b>, and <b>personal data requirements</b>.
+            </p>
+            <p>
+                Note: Below, “LLMs” refers to my general impression of LLMs and their use in applications, whereas “ChatGPT” refers to my personal experience 
+                with ChatGPT. This is because I have the most experience with ChatGPT, although I do think the others I’ve used (LLaMa, GPT-J, GPT4All Falcon, 
+                Dolly, Perplexity, Claude, Bard, Copilot) have similar use cases and drawbacks.
+            </p>
+            <p>
+                <u>search</u>
+            </p>
+            <p>
+                It wasn’t always the case that advanced natural language processing techniques were used in search engines. When you Google a question, 
+                most of the resulting links will contain largely text, but Google’s original PageRank algorithm from 1996 for returning relevant results 
+                didn’t really understand the content of those results or do complicated comparison to the content of your question - their big technological 
+                leap was instead gleaning information mainly from the numbers of links between webpages (i.e., that pages with more links to them are probably 
+                more informative).
+            </p>
+
+            <div class="col-lg">
+                <img class="img-fluid" src="blog_assets/llm_thoughts/red_pandas.png">
+                <p class="fs-6"><i>PageRank promotes webpages with more links to them, indicated here by the size of the page.<br/>
+                    Image thanks to George Chemmala</i></p>
+            </div>
+            <div class="col-md"></div>
+
+            <p>
+                But it’s been <a href="https://opensource.googleblog.com/2013/08/learning-meaning-behind-words.html">over</a> a decade since web search 
+                companies started using natural language processing techniques to actually look at the content of the results or the search in some form 
+                (e.g. whether you put a “not” in your search). Long before ChatGPT, big search companies were 
+                <a href="https://blog.google/products/search/search-language-understanding-bert/">using</a> 
+                <a class="text-danger" href="https://azure.microsoft.com/en-us/blog/bing-delivers-its-largest-improvement-in-search-experience-using-azure-gpus/">language</a> 
+                <a class="text-success" href="https://opensourceconnections.com/blog/2015/10/16/bm25-the-next-generation-of-lucene-relevation/">models</a> 
+                to enhance the quality of search results. LLMs represented a huge step forward in this approach, “understanding language” better than ever before on 
+                tens or hundreds of benchmarks. This, I believe, is a legitimately significant use case of LLMs, and probably represents much more relevant search 
+                results than before, especially for specific or confusing queries - you can actually make a search with a conversational query. 
+                LLM-powered search has also come to research databases (cf. 
+                <a href="https://www.sciencedirect.com/science/article/pii/S0148296321003155">bibliometric</a> 
+                analysis connecting different biological fields to identify potential therapies), product 
+                <a href="https://aws.amazon.com/blogs/industries/amazon-titan-embeddings-for-enhanced-content-recommendations-to-power-11-personalization/">recommendations</a>, 
+                job boards, and through images (on the <a href="https://cloud.google.com/blog/products/ai-machine-learning/multimodal-generative-ai-search">web</a> 
+                or in your <a href="https://blog.google/products/photos/ask-photos-google-io-2024/">camera roll</a>).
+            </p>
+            <p>
+                Caught up in the AI hype, one begins to wonder whether “search” as a functionality is the wrong question, and whether all the capability Google has to 
+                understand questions and answers could just enable LLMs to directly produce text responses to your search queries, as if asking an expert. Already, many 
+                use ChatGPT as a search engine over Google, and at Google IO this year, the company 
+                <a href="https://blog.google/products/search/generative-ai-google-search-may-2024/">demonstrated</a> 
+                the search page as an AI-generated overview answering your question, with a 
+                <a href="https://www.pcworld.com/article/2334403/google-now-has-a-web-search-button-for-text-only-results-without-the-junk.html">separate</a> 
+                “Web” tab, just like “News” and “Images”, showing you the “plain Google” page of links relevant to your question. However, this 
+                ignores the fact that most people use Google search to actually search for specific pages, files, images on the web, not just abstract text.
+            </p>
+            <p>
+                Moreover, LLMs still struggle (and, <a href="https://arxiv.org/pdf/2311.05232">by their construction</a>, will probably continue to struggle) 
+                with distinguishing fact from fiction, a phenomenon called <b>hallucination</b>. You can ask Gemini to fact-check itself, which helps; you can 
+                ask ChatGPT to think carefully and explain its reasoning and judge whether what it said is true, which helps, but ultimately they don’t have a 
+                sense of true or false. Maybe this is an unfair criticism because we live in a complex world where statements are often not completely true or 
+                false, but current LLMs are in practice actually hindered by this property.
+            </p>
+            <p>
+                People make this out to be a <a href="https://www.rstreet.org/research/impact-of-artificial-intelligence-on-elections/">huge</a> 
+                <a class="text-danger" href="https://apnews.com/article/artificial-intelligence-elections-disinformation-chatgpt-bc283e7426402f0b4baa7df280a4c3fd">deal</a> 
+                for disinformation, especially with regard to elections, but in my opinion AI safety experts at 
+                <a href="https://www.anthropic.com/research#publications">Anthropic</a> and such are doing a good job of preventing 
+                <a href="https://www.anthropic.com/news/testing-and-mitigating-elections-related-risks">that</a>, and I’m also a worried that part of the effect is that governments will 
+                <a href="https://www.nextgov.com/cybersecurity/2024/05/cisa-fbi-resuming-talks-social-media-firms-over-disinformation-removal-senate-intel-chair-says/396360/">interfere</a> 
+                <a class="text-danger" href="https://www.cnbc.com/2024/01/10/how-fbi-nsa-are-preparing-for-deepfakes-ahead-of-2024-elections.html">more</a> 
+                with the free spread of information on the Internet. Big AI companies are also doing a pretty good job of 
+                <a href="https://techmonitor.ai/technology/ai-and-automation/openai-gpt-4-chatgpt-joe-biden">preventing</a> 
+                <a class="text-danger" href="https://arxiv.org/pdf/2209.07858">exploits</a> along the lines of “how do I build a bomb”, “what’s x’s home address”, 
+                and plenty of other dangers. I think hallucination most hinders LLMs’ ability to handle complex technical questions - in my experience, ask it to prove a 
+                mathematical theorem and unless the proof is very well-known, it will probably come up with something that sounds somewhat plausible but is not a complete or 
+                entirely correct argument.
+            </p>
+            <p>
+                <u>administration</u>
+            </p>
+            <p>
+                One of my biggest personal use cases for ChatGPT hinges on its ability to write “reasonable”-sounding text, even if it is somewhat bland and generic. 
+                Generally, I am referring to text that’s one part content to three parts filler as ‘administration’ because I think this use case includes not just job 
+                applications but also a lot of template-oriented bureaucracy - understanding and writing, for example, legal forms and contracts, tax documentation, and 
+                other reports. I think for the time being, this use case presents the greatest commercial opportunity, before AI systems become a lot better at interfacing 
+                with logical algorithms or handling a lot of sensitive user-specific context in a secure way, and indeed 
+                <a href="https://www.claudius.ai/">quite</a> 
+                <a class="text-danger" href="https://www.robinai.com/">a</a> 
+                <a class="text-success" href="https://donotpay.com/">few</a> 
+                <a class="text-warning" href="https://www.ivo.ai/">startups</a> 
+                <a href="https://www.taxgpt.com/">are</a> already making inroads into these domains.
+            </p>
+            <p>
+                I’ve found this personally useful for correcting professional emails and editing cover letters, with prompts like “make this sound less awkward” or 
+                “for a student with x and y experiences, answer the following question in 1-2 paragraphs” to get me started. I tend to find starting the most difficult 
+                part of applications and projects, and ChatGPT has actually greatly helped me on this psychological level.
+            </p>
+            <p>
+                <u>debugging</u>
+            </p>
+            <p>
+                As LLMs are pretty much trained on the whole Internet, they know the solutions to most of the tech problems, coding issues, and little annoying bugs that 
+                have ever been encountered, and are extremely helpful for suggesting solutions to these issues. This also includes little annoying bugs in life, like fixing 
+                a sink or caring for a particular plant. In my experience, this doesn’t, however, extend to much creativity in coming up with technical innovations or working 
+                out solutions to logical, multi-step technical challenges where every piece is accurate, or even when debugging issues with new technologies that don’t have 
+                decently sized existing online support documentation. Without complex prompting 
+                <a href="https://arxiv.org/pdf/2407.14562">strategies</a>, LLMs 
+                <a href="https://ec.ai/the-limitations-of-large-language-models-for-complex-reasoning/">don’t</a> inherently perform formal logical reasoning, and they 
+                generally struggle with tasks like <a href="https://www.reddit.com/r/singularity/comments/122ilav/why_is_maths_so_hard_for_llms/">math</a> that require 
+                multi-step reasoning. This use case is pretty limited in the actual scope of the technology, but is improving 
+                in <a href="https://www.swebench.com/">quality</a> as LLMs become trained on larger codebases designed for these tasks.
+            </p>
+            <p>
+                <u>interfacing</u>
+            </p>
+            <p>
+                Although LLMs are by default limited to their training data, both in grammar and in breadth of content, they can be finetuned to be able to interface with 
+                existing knowledge bases or classical AI systems to great effect. For example, the 
+                <a href="https://writings.stephenwolfram.com/2023/04/instant-plugins-for-chatgpt-introducing-the-wolfram-chatgpt-plugin-kit/">Wolfram plugin</a> for 
+                ChatGPT allows ChatGPT to retrieve the results of executing code in the Wolfram language, which is very good at factual knowledge, symbolic math, and 
+                visualization - greatly complementing ChatGPT’s weaknesses. Similarly, LLMs can interface with other systems to syntax-check generated code or execute 
+                instructions in task languages to control smart home appliances or smart car navigation. A large component of this potential capability lies in retrieving 
+                information from proprietary knowledge bases like customer service manuals or guided tour information to provide better user experiences in either of those 
+                situations.
+            </p>
+            <p>
+                Using this capability is where the potential power of the long-desired “AI personal assistant” becomes apparent. LLM assistants, besides their obvious uses of 
+                translating languages and answering questions, could interface with applications to schedule events in your calendar, send emails in your writing style, or 
+                play songs from your Spotify about whatever thing you’re pointing your phone camera at. This is the idea behind new products like the Rabbit R1 and the 
+                Humane AI Pin, and in the AI world, these small LLMs that are trained to interface with one application, language, or topic are called “agents”.
+            </p>
+            <p>
+                Current versions of this idea are working through the technical challenges that come with interfacing with so many different programs, but the larger 
+                ethical issue here is that for an AI assistant to be truly helpful, it has to know everything about you. Think of a human personal secretary - they 
+                should know your schedule and preferences in order to make informed decisions in your stead, and the same <b>personal data requirements</b> would apply to an 
+                algorithm. The trick is that that algorithm is owned by a company, which will then want to use your data to improve the algorithm or to recommend actions 
+                and products for you to spend money on. And either way, the storage of that data is a massive security concern. These are the same problems with existing 
+                super-targeted recommendation algorithms, amplified by the scale of the data that’s necessary for the “AI personal assistant” idea to work.
+            </p>
+            <p>
+                <u>elementary teaching</u>
+            </p>
+            <p>
+                LLMs may not be great at answering technical questions that require logical reasoning, but if you have questions like “how does x thing work again”, 
+                they can be very good. And for most teaching through at least a middle school level, ChatGPT does well - in fact, OpenAI is working on a partnership 
+                with Khan Academy and some school districts on the <a href="https://www.khanmigo.ai/">Khanmigo</a> teaching assistant, which can create assignments 
+                for students and offer feedback (in a judgment-free manner). That being said, we are a long way away from the dream of individualized tutors that 
+                know how much you know and lead you along the right intuitions and correct your mistakes. In addition, LLMs can’t handle neurodivergent people, 
+                social learning, or controversial or difficult topics in any meaningful way yet, so they will not be replacing human teachers any time soon.
+            </p>
+            <p>
+                <u>language</u>
+            </p>
+            <p>
+                Finally, LLMs are <i>language</i> models, so an LLM can be a dictionary and thesaurus and Grammarly and Duolingo all in one. 
+                I find this especially good for questions like “what’s that word that means x” and “what’s the name of this plant” and “how do you get the point across of 
+                x in y language”. You can very much use them to converse and learn languages, since the biggest LLMs tend to be multilingual. Understanding and communicating 
+                about tricky language topics is the original use case for language models, and represents many of the standards they were developed against 
+                (e.g., the <a href="https://arxiv.org/pdf/2201.02387">Winograd Schema Challenge</a>), so modern LLMs pretty much crush any language-related challenge 
+                you throw at them. Multimodal and timing-related challenges like having an LLM be part of a conversation are still awkward, but I’m confident that within 
+                a couple years we’ll have them listening to multiple people at once, butting in when appropriate, and understanding and producing inflection and fragments fluently.
+            </p>
+            <p>
+                I will be curious to see the direction of LLMs in the next two years. In the future:
+            </p>
+            <ul>
+                <li>Maybe models will just continue to grow larger and more data-hungry and that will solve the issues with hallucination and logical reasoning.</li>
+                <li>Maybe dedicated AI hardware will proliferate and enable plenty of small, specialized LLMs for many different use cases that can all be run locally 
+                    and therefore don’t take personal data to continue training on.</li>
+                <li>Maybe these use cases will develop, and the unsuccessful ChatGPT wrapper-businesses will be weeded out once AI funding falls a little, and models’ 
+                    capabilities will not really change until the next deep technical development, like new model architectures.</li>
+            </ul>
+            <p>
+                Maybe some combination of the above. For now, though, large language models remain saddled with their share of problems and limitations.
+            </p>
+        </div>
+    </div>
+	<!-- Bootstrap JS import -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>
