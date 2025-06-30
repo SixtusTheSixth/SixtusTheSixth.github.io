@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Playlist Heardle</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <style>
+        body {
+            background-image: url('/assets/common/paper_bg2.jpeg');
+            padding: 20px;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 80%;
+            height: 60px;
+        }
+
+        .row {
+            height: 100%;
+            justify-content: left;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        a {
+            text-decoration: none;
+            font-family:Candara, Verdana, sans-serif;
+        }
+        p {
+            font-family:Candara, Verdana, sans-serif;
+        }
+        li {
+            font-family:Candara, Verdana, sans-serif;
+        }
+
+        .btn {
+            font-family:Candara, Verdana, sans-serif;
+        }
+        .btn-success:hover {
+            background-color: #1ED760;
+            border-color: #1ED760;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .btn-info {
+            background-color: #50b3e6; /* Light Blue */
+            border-color: #50b3e6;
+            color: white;
+        }
+        .btn-info:hover {
+            background-color: #6bc1f0;
+            border-color: #6bc1f0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .btn-light {
+            background-color: #b3b3b3; /* Light grey */
+            border-color: #b3b3b3;
+            color: #333;
+        }
+        .btn-light:hover {
+            background-color: #cccccc;
+            border-color: #cccccc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .btn-sm {
+            font-size: 0.8rem;
+        }
+        .form-control {
+            font-family:Candara, Verdana, sans-serif;
+        }
+        .form-control:focus {
+            border-color: #1DB954;
+            box-shadow: 0 0 0 0.25rem rgba(29, 185, 84, 0.25);
+        }
+        #dropdown-item-text {
+            font-family:Candara, Verdana, sans-serif; /* TODO: this doesn't work */
+        }
+        #message {
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #f0f0f0;
+            min-height: 10px; /* Prevent layout shift */
+        }
+
+        /* Progress Bar Styling */
+        #player-controls-container {
+            display: flex; /* Enable flexbox for side-by-side layout */
+            align-items: center; /* Vertically align items */
+            gap: 15px; /* Space between play button and bar */
+            margin-top: 15px;
+        }
+
+        #progress-container {
+            /* width: 100%; */
+            background-color: #333; /* Light grey background for the full 16 seconds */
+            height: 20px;
+            margin-top: 15px;
+            border-radius: 5px;
+            overflow: hidden; /* Ensures progress bar doesn't go outside */
+            position: relative; /* Essential for positioning breaks */
+            display: none; /* Initially hidden */
+        }
+
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50; /* Green progress bar */
+            border-radius: 5px;
+            transition: width 0.1s linear; /* Smooth transition for progress */
+        }
+
+        .progress-break {
+            position: absolute;
+            top: 0;
+            width: 2px; /* Thickness of the break line */
+            height: 100%;
+            background-color: #fff; /* White line for contrast */
+            z-index: 10; /* Ensure it's above the progress bar */
+            box-shadow: 0 0 3px rgba(0,0,0,0.3); /* Optional: small shadow for visibility */
+        }
+
+        /* Guess Table Styling */
+        #guess-table-container {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            width: 100%; /* Ensure it takes full width */
+        }
+        #guess-table {
+            width: 100%;
+            border-collapse: collapse; /* Keep this to merge borders */
+            font-size: 0.95rem;
+            border: 1px solid #222; /* Added: Border around the entire table */
+            border-radius: 5px; /* Added: Rounded corners for the table */
+            overflow: hidden; /* Ensures border-radius is visible */
+        }
+        #guess-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #222; /* Lighter border for light background */
+            color: #222;
+        }
+        #guess-table tr:last-child td {
+            border-bottom: none;
+        }
+        .guess-row {
+            height: 35px; /* Ensure consistent row height */
+            vertical-align: middle;
+        }
+        .guess-row .status-icon {
+            /* font-size: 1.2em; /* Larger check/x */
+            margin-right: 8px;
+        }
+        /* .guess-row .status-icon.correct { color: #1DB954; } /* Green for correct */
+        /* .guess-row .status-icon.incorrect { color: #e65100; } /* Orange/Red for incorrect */
+        .guess-row .guess-text {
+            color: #fff;
+        }
+
+        /* Autosuggest Styling */
+        #guess-input-container {
+            position: relative;
+            margin-top: 20px;
+        }
+        #suggestions-list {
+            position: absolute;
+            top: 100%; /* Position below the input */
+            left: 0;
+            right: 0;
+            background-color: #3e3e3e;
+            border: 1px solid #535353;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100; /* Ensure it's on top */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        #suggestions-list div {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #ccc;
+        }
+        #suggestions-list div:hover {
+            background-color: #4e4e4e;
+            color: #fff;
+        }
+
+        #game-end-controls {
+            margin-top: 20px;
+        }
+
+        /* Game Feedback and Next Track Button */
+        #game-feedback {
+            margin-top: 5px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-align: left;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="row fs-4 fw-bold">
+        <p>Playlist Heardle</p>
+    </div>
+
+    <div class="row fs-5">
+        <p class="fs-6">This is a variation of the game Heardle, which itself is a variation of the game Wordle. In the original, you have to guess the song title from 
+            the first few seconds of the song. You have six guesses, each of which gives you a little more of the song.
+        </p>
+        <p class="fs-6">
+            Here, you can upload a link to your own Spotify playlist, and you'll be quizzed only on songs from that playlist. I made this because I was frustrated by
+            the song selections of the original Heardle websites (<a href=https://heardlewordle.io/ target="_blank">here</a> or 
+            <a href=https://heardle.info/ target="_blank">here</a>). Credit for the idea also goes to my friend Owen Rollins.
+        </p>
+        <p class="fs-6">
+            Unfortunately, due to changes in Spotify's API terms, you need to have a Spotify Premium account to use this. You can create one 
+            <a href="https://www.spotify.com/signup/" target="_blank">here</a>. Additionally, only user-created playlists will work. Spotify-owned or
+            algorithmically created playlists are prohibited by the API.
+        </p>
+    </div>
+    
+    <div id="auth-section">
+        <button id="authorize-button" class="btn btn-success">Log into Spotify to continue</button>
+    </div>
+    
+    <div class="row" id="demo-section" style="display: none;">
+        <div class="row">
+            <p class="fs-6">Enter a Spotify playlist link (e.g. https://open.spotify.com/playlist/7B2M7EVfDdCMeKbj33dVYd for my whistling playlist):</p>
+            <!--
+            0VjIjW4GlUZAMYd2vXMi3b for "Blinding Lights"
+            2yPoXCs7BSIUrucMdK5PzV for "Umbrella"
+            7N0gg0AJvQiVr5wCAeDaUw for my Kazakh songs playlist
+            -->
+        </div>
+        <div class="row">
+            <div class="col-sm">
+                <input class="form-control fs-6" type="text" id="playlist-id-input" placeholder="Spotify Playlist ID" value="https://open.spotify.com/playlist/7B2M7EVfDdCMeKbj33dVYd">
+            </div>
+            <div class="col-sm">
+                <button id="playlist-button" class="btn btn-info fs-6">Submit Playlist</button>
+            </div>
+            <div class="col-sm"></div>
+        </div>
+        <div class="row" style="margin-top: 10px;">
+            <div class="col-sm">
+                <div class="dropdown">
+                    <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="helpDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Help! How do I find the link to a playlist?
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="helpDropdown" style="margin-top: 10px">
+                        <li><span class="dropdown-item-text">
+                            1. Open Spotify and find your desired playlist.<br>
+                            2. Right-click the playlist (or tap the "..." menu on mobile).<br>
+                            3. Select "Share" then "Copy link to playlist".<br>
+                            The link will look something like: <br>
+                            "https://open.spotify.com/playlist/7N0gg0AJvQiVr5wCAeDaUw?si=fZhDaSYJST2WCcx3QVJBdw"<br>
+                            5. Paste the link in the input box above.<br>
+                        </span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <p id="message" style="margin-top: 5px"></p>
+        </div>
+
+        <div class="row">
+            <div class="col-6" id="guess-table-container" style="display: none;">
+                <table id="guess-table">
+                    <tbody>
+                        <!-- Rows will be dynamically added here by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-6"></div>
+        </div>
+        
+        <div class="row">
+            <div id="player-controls-container" style="display: none;">
+                <button id="play-button" class="btn btn-secondary fs-6">Play</button>
+                <button id="skip-button" class="btn btn-danger fs-6">Skip Guess</button>
+                <div id="progress-container">
+                    <div id="progress-bar"></div>
+                    <!-- Break points -->
+                    <div class="progress-break" style="left: calc(1 / 16 * 100%);"></div> 
+                    <div class="progress-break" style="left: calc(2 / 16 * 100%);"></div>
+                    <div class="progress-break" style="left: calc(4 / 16 * 100%);"></div>
+                    <div class="progress-break" style="left: calc(7 / 16 * 100%);"></div>
+                    <div class="progress-break" style="left: calc(11 / 16 * 100%);"></div>
+                </div>
+            </div> 
+        </div>
+
+        <div class="row">
+            <div id="guess-input-container" style="display: none;">
+                <div class="input-group mt-3">
+                    <button class="btn btn-success" type="button" id="submit-guess-button">Guess</button>
+                    <input type="text" id="guess-text-input" class="form-control" placeholder="Start typing your guess...">
+                </div>
+                <div id="suggestions-list" style="display: none;">
+                    <!-- Suggestions will appear here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="row" id="game-end-controls" style="display: none;"> 
+            <div class="col-auto align-middle">    
+                <p class="align-middle" id="game-feedback"></p>
+            </div>
+            <div class="col-auto">
+                <button id="next-track-button" class="btn btn-success">Next Track</button>
+            </div>
+        </div>
+    
+        <script>
+            const authorizeButton = document.getElementById('authorize-button');
+
+            const demoSection = document.getElementById('demo-section');
+            const authSection = document.getElementById('auth-section');
+            const playlistIdInput = document.getElementById('playlist-id-input');
+            const playlistButton = document.getElementById('playlist-button');
+            const message = document.getElementById('message');
+            const playButton = document.getElementById('play-button');
+            const skipButton = document.getElementById('skip-button');
+
+            const playerControlsContainer = document.getElementById('player-controls-container');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+
+            const guessTableContainer = document.getElementById('guess-table-container');
+            const guessTableBody = document.querySelector('#guess-table tbody');
+            const guessTextInput = document.getElementById('guess-text-input');
+            const guessInputContainer = document.getElementById('guess-input-container');
+            const submitGuessButton = document.getElementById('submit-guess-button');
+            const suggestionsList = document.getElementById('suggestions-list');
+            const nextTrackButton = document.getElementById('next-track-button');
+            const gameEndControls = document.getElementById('game-end-controls');
+            const gameFeedback = document.getElementById('game-feedback');
+            
+            let spotifyAccessToken = null;
+
+            // Declare player and deviceId globally so all functions can access them (like button event handlers)
+            let spotifyPlayer = null; 
+            let deviceId = null;
+            let playerInitialized = false; // playlistButton should only initialize player & make initial API calls once
+
+            let progressInterval = null; // To store the interval ID
+            const MAX_PREVIEW_TIME = 16000; // 16 seconds in milliseconds
+            const GUESS_TIMES = [1000, 2000, 4000, 7000, 11000, 16000]; // Breakpoints in milliseconds for guesses
+            const MAX_GUESSES = 6; // Maximum number of guesses allowed
+
+            let currentGuessNumber = 0; // To track the current guess number (0-indexed)
+            let correctTrackName = '';
+            let correctTrackUri = ''; // To store the URI of the correct track
+            let currentPlayLimit = GUESS_TIMES[0]; // dynamic limit based on currentGuessNumber
+
+            let currentPlaylistTracks = []; // stores all tracks from fetched playlsit
+            let currentPlaylistId = ''; // stores the current playlist ID being played
+
+            // Function to extract hash parameters (keep this as is)
+            function getHashParams() {
+                const hashParams = {};
+                let e, 
+                    r = /([^&;=]+)=?([^&;]*)/g,
+                    q = window.location.hash.substring(1); // ignore the leading '#'
+                while (e = r.exec(q)) {
+                    hashParams[e[1]] = decodeURIComponent(e[2]);
+                }
+                return hashParams;
+            }
+
+            // Function to reset progress bar when loading a new track or going to next breakpoint
+            function resetProgressBar(hideContainer=true) {
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+                progressBar.style.width = '0%';
+                if (hideContainer) { 
+                    progressContainer.style.display = 'none'; // Hide until playback starts
+                    message.textContent = ''; // Clear message when hiding, otherwise current game messages persist
+                }
+            }
+
+            // Function to clear all guesses from the table
+            function clearGuessTable() {
+                guessTableBody.innerHTML = '';
+                for (let i = 0; i < MAX_GUESSES; i++){
+                    const row = guessTableBody.insertRow();
+                    row.className = 'guess-row';
+                    const cell = row.insertCell();
+                    cell.textContent = `${i+1}.`; // guess number
+                }
+            }
+
+            // Function to add a guess to the table
+            function addGuessToTable(guess, isCorrect) {
+                const row = guessTableBody.rows[currentGuessNumber];
+                if (row) {
+                    row.innerHTML = `<td class="guess-text">${currentGuessNumber+1}. <span class="status-icon ${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? '✅': '❌'}</span>${guess}</td>`;
+                } else {
+                    row.innerHTML = `<td class="guess-text"></td>`;
+                }
+            }
+
+            // Function to reset game state for a new round/track
+            async function resetGame() {
+                resetProgressBar(false); // hide completely... TODO: do I want this?
+                clearGuessTable();
+                guessTextInput.value = '';
+                suggestionsList.style.display = 'none';
+                gameEndControls.style.display = 'none';
+                nextTrackButton.style.display = 'none';
+                submitGuessButton.disabled = false;
+                guessTextInput.disabled = false;
+                currentGuessNumber = 0; 
+                currentPlayLimit = GUESS_TIMES[0]; // Reset to first guess limit
+                message.textContent = 'Loading next song...';
+
+                if (spotifyPlayer && deviceId){
+                    try {
+                        // Stop current playback
+                       spotifyPlayer.pause().then(() => {
+                            console.log('Paused current track before next song.');
+                        }).catch(err => {
+                            console.error('Error pausing current track:', err);
+                        });
+
+                        // Skip to next track in the playlist
+                        spotifyPlayer.nextTrack().then(() => {
+                            console.log('Skipped to next track in playlist.');
+                        });
+
+                        // Wait a moment for Spotify to update state before playing
+                        await new Promise(resolve => setTimeout(resolve, 500));
+
+                        // Get the current state to find the new track name
+                        const state = await spotifyPlayer.getCurrentState();
+                        if (state && state.track_window.current_track) {
+                            correctTrackName = state.track_window.current_track.name;
+                            correctTrackUri = state.track_window.current_track.uri;
+                            console.log('Got new track name');
+
+                            // Play new track from the start
+                            await spotifyPlayer.seek(0);
+                            playButton.disabled = false; // show play button
+                            skipButton.disabled = false;
+                            progressContainer.style.display = 'block'; // show progress bar
+                            playerControlsContainer.style.display = 'block';
+                            guessInputContainer.style.display = 'block'; // show guess input
+                            guessTableContainer.style.display = 'flex';
+                            await spotifyPlayer.resume(); // Automatically start playing
+                        } else {
+                            message.textContent = 'Could not get next track. Try submitting playlist again.';
+                            console.error('No current track available after skipping.');
+                        }
+                    } catch (error) {
+                        console.error('Error advancing to next track:', error);
+                        message.textContent = 'Error loading next song. Try submitting playlist again.';
+                    }
+                } else {
+                    message.textContent = 'Player not ready to load next track.';
+                }
+            }
+
+            // Define onSpotifyWebPlaybackSDKReady in the global scope
+            // This function will be called by the SDK itself when it's ready.
+            window.onSpotifyWebPlaybackSDKReady = () => {
+                if (!spotifyAccessToken) {
+                    // If the SDK somehow loads and we don't have a token,
+                    // log a warning but don't try to create a player yet.
+                    console.warn("Spotify Web Playback SDK ready, but no access token available yet.");
+                    return; // Exit, player will be created later if authorization occurs
+                }
+
+                // Create the player instance. Assign it to the global spotifyPlayer variable.
+                spotifyPlayer = new Spotify.Player({
+                    name: 'Heardle Game Player', // A more descriptive name
+                    getOAuthToken: cb => { cb(spotifyAccessToken); },
+                    volume: 0.5
+                });
+                
+                // Add Player Event Listeners
+                spotifyPlayer.addListener('ready', ({ device_id }) => {
+                    console.log('Ready with Device ID', device_id);
+                    deviceId = device_id; // Assign to global deviceId
+                    message.textContent = 'Spotify Player is connected and ready!';
+                    // Automatically transfer playback and play if track is already selected
+                    // (This part will be handled in playlistButton click for simplicity)
+                });
+
+                spotifyPlayer.addListener('not_ready', ({ device_id }) => {
+                    message.textContent = 'Device ID has gone offline: ' + device_id;
+                    console.log('Device ID has gone offline', device_id);
+                    playerControlsContainer.style.display = 'none'; // Hide play and skip buttons if player goes offline
+                });
+
+                spotifyPlayer.addListener('initialization_error', ({ message: msg }) => {
+                    message.textContent = `Player initialization error: ${msg}`;
+                    console.error('Initialization error:', msg);
+                });
+
+                spotifyPlayer.addListener('authentication_error', ({ message: msg }) => {
+                    message.textContent = `Player authentication error. Please re-authorize: ${msg}`;
+                    console.error('Authentication error:', msg);
+                    // Optionally, show auth button again or redirect
+                    authSection.style.display = 'block';
+                    demoSection.style.display = 'none';
+                });
+
+                spotifyPlayer.addListener('account_error', ({ message: msg }) => {
+                    message.textContent = `Spotify account error: ${msg} (Premium account usually required).`;
+                    console.error('Account error:', msg);
+                });
+
+                spotifyPlayer.addListener('playback_error', ({ message: msg }) => {
+                    message.textContent = `Playback error: ${msg}`;
+                    console.error('Playback error:', msg);
+                });
+                
+                // Update progress bar - main logic goes here
+                spotifyPlayer.addListener('player_state_changed', async state => {
+                    if (!state || !state.track_window || !state.track_window.current_track) {
+                        console.log('No state or current track available.');
+                        resetProgressBar(true); // hide bar if no track is playing
+                        return;
+                    }
+
+                    const currentTrack = state.track_window.current_track;
+                    const position = state.position; // Current playback position in ms
+                    const duration = currentTrack.duration_ms; // Total duration of the track
+
+                    // Ensure progress bar is visible if there's a track playing
+                    progressContainer.style.display = 'block';
+
+                    // console.log(`Current Track: ${currentTrack.name}, Position: ${position}ms`); // Debugging: but don't give away the answer
+
+                    // If track changed unexpectedly in the middle of a round (e.g. user played something on another device)
+                    if (currentTrack.uri !== correctTrackUri && correctTrackUri !== '') {
+                        console.warn('Track changed unexpectedly. Resetting game for the new track.');
+                        // resetGame(); // I think this if statement is being called any time we switch to a new round
+                        if (!state.paused && position < MAX_PREVIEW_TIME) {
+                            progressContainer.style.display = 'block';
+                        } else {
+                            resetProgressBar(true);
+                        }
+                        correctTrackName = currentTrack.name;
+                        correctTrackUri = currentTrack.uri; // Update to new track URI
+                    }
+
+                    // If current playback exceeded 16 seconds
+                    if (position >= currentPlayLimit && !state.paused) {
+                        if (progressInterval){
+                            clearInterval(progressInterval);
+                            progressInterval = null;
+                        }
+                        spotifyPlayer.pause().then(() => {
+                            console.log(`Paused at ${currentPlayLimit / 1000} seconds.`);
+                            // Don't seek to start, let user replay or guess
+                            // Progress bar will reflect full guess segment
+                            progressBar.style.width = `${(currentPlayLimit / MAX_PREVIEW_TIME) * 100}%`; // Set to full segment width
+                            message.textContent = `Time's up for guess ${currentGuessNumber + 1}! Play again or make a guess.`;
+                        }).catch(err => {
+                            console.error('Error pausing at guess limit:', err);
+                        });
+                        return; // No need to update progress bar here
+                    }
+
+                    // If track is playing and within the current time limit
+                    if (!state.paused && !state.disallows.pausing && position < currentPlayLimit) {
+
+                        // Start updating the bar if not already running
+                        if (!progressInterval) {
+                            progressInterval = setInterval(() => {
+                                spotifyPlayer.getCurrentState().then(async currentState => {
+                                    if (currentState && !currentState.paused) {
+                                        const currentPos = currentState.position;
+                                        if (currentPos < currentPlayLimit) {
+                                            const progressPercentage = (currentPos / MAX_PREVIEW_TIME) * 100;
+                                            progressBar.style.width = `${progressPercentage}%`;
+                                        } else {
+                                            // Beyond current play limit, pause and clear the interval
+                                            // should be handled by the main if statement before this (where position >= currentPlayLimit)
+                                            // this is a fallback
+                                            await spotifyPlayer.pause();
+                                            // no longer seek to position 0 or reset progress bar
+                                            if (progressInterval) {
+                                                clearInterval(progressInterval);
+                                                progressInterval = null; // Reset interval ID
+                                            }
+                                            message.textContent = `Time's up for guess ${currentGuessNumber + 1}! Play again or make a guess.`;
+                                            console.log(`Pausing (secondary check) at ${currentPlayLimit / 1000} seconds.`);
+                                            // progressBar.style.width = `${(currentPlayLimit / MAX_PREVIEW_TIME) * 100}%`; // Set to full segment width
+                                            await spotifyPlayer.seek(currentPlayLimit + 30); // otherwise progressBar won't actually align
+                                        }
+                                    } else if (currentState && currentState.paused) {
+                                        // If paused, just ensure bar is displayed at current position
+                                        const progressPercentage = (currentState.position / MAX_PREVIEW_TIME) * 100;
+                                        progressBar.style.width = `${progressPercentage}%`;
+                                        // Don't stop interval, as it might resume -- TODO: do I need to do this?
+                                    } else {
+                                        // No state, assume playback stopped or error
+                                        console.log('Playback stopped or error during interval update.');
+                                        resetProgressBar(true);
+                                    }
+                                }).catch(err => {
+                                    console.error('Error in progress interval getting state:', err);
+                                    resetProgressBar(true);
+                                });
+                            }, 100); // Update every 100ms for smooth animation
+                        } else {
+                            // If already running and playing, update current width
+                            const progressPercentage = (position / MAX_PREVIEW_TIME) * 100;
+                            progressBar.style.width = `${progressPercentage}%`;
+                        }
+                    } else if (state.paused) { // If paused (but within current time limit)
+                        // Clear interval if it's running, don't need constant updates
+                        if (progressInterval) {
+                            clearInterval(progressInterval);
+                            progressInterval = null; // Reset interval ID
+                        }
+                        // Ensure bar shows current position when paused
+                        const progressPercentage = (position / MAX_PREVIEW_TIME) * 100;
+                        progressContainer.style.display = 'block'; // keep bar visible
+                        progressBar.style.width = `${progressPercentage}%`;
+                    } else {
+                        // default for other states (e.g. track ended naturally before 16s)
+                        resetProgressBar(true);
+                    }
+                });
+
+                // Connect the player
+                spotifyPlayer.connect().then(success => {
+                    if (success) {
+                        console.log('Spotify Player successfully connected!');
+                    } else {
+                        console.log('Spotify Player failed to connect.');
+                    }
+                });
+            };
+
+            // Initial Page Load & Auth Handling
+
+            // Check for access token on page load (from Spotify callback redirect)
+            const params = getHashParams();
+            if (params.access_token) {
+                spotifyAccessToken = params.access_token;
+                authSection.style.display = 'none';
+                demoSection.style.display = 'block';
+                window.history.pushState({}, document.title, window.location.pathname); // Clean URL
+                
+                message.textContent = 'Authorization successful!';
+                
+                // If the SDK has already loaded, onSpotifyWebPlaybackSDKReady would have fired.
+                // If it hasn't, the global `window.onSpotifyWebPlaybackSDKReady` is now defined
+                // and will be called when the SDK finishes loading.
+                // No direct call to initializeSpotifyPlayer() needed here anymore;
+                // it's handled by the SDK's callback.
+
+            } else { // User is not authenticated
+                authSection.style.display = 'block';
+                demoSection.style.display = 'none';
+                // No token, so player won't be initialized by the SDK's callback yet.
+            }
+
+            // Authorization Button
+            authorizeButton.addEventListener('click', () => {
+                window.location.href = 'https://aquilifer-netlify-spotify.netlify.app/.netlify/functions/get-spotify-token';
+            });
+            
+            // Submit Playlist Button
+            playlistButton.addEventListener('click', async () => {
+                if (!spotifyAccessToken) {
+                    message.textContent = 'Please authorize with Spotify first!';
+                    return;
+                }
+                if (!spotifyPlayer || !deviceId) {
+                    message.textContent = 'Spotify Player is not yet ready. Please wait a moment and try again. Ensure a Premium account is logged into Spotify app/web.';
+                    console.log('Player:', spotifyPlayer, 'Device ID:', deviceId);
+                    // Attempt to re-connect player if it somehow got disconnected
+                    if (spotifyPlayer) spotifyPlayer.connect(); 
+                    return;
+                }
+
+                const r_pID = /^(?<pID>[a-zA-Z0-9]+)$|spotify.com\/playlist\/(?<pID>[a-zA-Z0-9]+)/g // regex matching both a plain ID or extracting it from a link
+                let playlistId = r_pID.exec(playlistIdInput.value.trim());
+                if (!playlistId) {
+                    message.textContent = 'Please enter a Spotify Playlist ID.';
+                    console.log('Invalid playlist ID or link:', playlistIdInput.value);
+                    return;
+                } else {
+                    playlistId = playlistId.groups['pID']; // Get the matched ID or link
+                    console.log('Extracted Playlist ID:', playlistId);
+                }
+
+                playlistButton.disabled = true; // disable this button while loading
+
+                // If this is the first time we're loading a playlist, set up the player
+                if (!playerInitialized) {
+                    playerInitialized = true; // Prevent re-initialization
+
+                    message.textContent = 'Loading playlist...';
+                    playerControlsContainer.style.display = 'none'; // Hide play button until track is set
+                    resetProgressBar();
+
+                    try {
+                        const playlistUri = `spotify:playlist:${playlistId}`;
+
+                        // Step 1: Transfer playback to our Web Playback SDK player (your current browser tab)
+                        // This is crucial. It tells Spotify to start controlling playback from YOUR device ID.
+                        const transferResponse = await fetch('https://api.spotify.com/v1/me/player', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${spotifyAccessToken}`
+                            },
+                            body: JSON.stringify({
+                                device_ids: [deviceId],
+                                play: false // Do not autoplay here
+                            })
+                        });
+
+                        if (!transferResponse.ok) {
+                            const error = await transferResponse.json();
+                            console.error('Error transferring playback:', error);
+                            message.textContent = `Failed to transfer playback: ${error.error.message || 'Unknown error'}`;
+                            return;
+                        }
+                        console.log('Playback transferred to SDK device.');
+
+                        // Not sure the following is necessary
+                        // This is a more robust way to wait for the device to be truly active.
+                        // We'll use a Promise and the player_state_changed listener to confirm.
+                        const playbackReadyPromise = new Promise(resolve => {
+                            const stateChangeListener = (state) => {
+                                if (state && state.device_id === deviceId && !state.paused) { // Check if our device is active and playing
+                                    // If the SDK reports it's playing, it means it's ready for direct play commands
+                                    spotifyPlayer.removeListener('player_state_changed', stateChangeListener); // Clean up listener
+                                    resolve();
+                                } else if (state && state.device_id === deviceId && state.paused && state.playback_id) {
+                                    // If it's our device, but paused (e.g., from previous action), consider it ready to accept a play command
+                                    spotifyPlayer.removeListener('player_state_changed', stateChangeListener); // Clean up listener
+                                    resolve();
+                                }
+                            };
+                            spotifyPlayer.addListener('player_state_changed', stateChangeListener);
+
+                            // Add a timeout in case state change doesn't happen for some reason
+                            setTimeout(() => {
+                                spotifyPlayer.removeListener('player_state_changed', stateChangeListener);
+                                console.warn('Timeout waiting for playback to be ready after transfer.');
+                                resolve(); // Resolve anyway to proceed, but log a warning
+                            }, 2000); // Wait up to 2 seconds
+                        });
+                        await playbackReadyPromise; // Wait for player to be ready
+
+                        // Step 3: Set Repeat mode to playlist
+                        console.log('Setting repeat mode to off...');
+                        const repeatResponse = await fetch(`https://api.spotify.com/v1/me/player/repeat?state=context&device_id=${deviceId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${spotifyAccessToken}`
+                            }
+                        });
+                        if (!repeatResponse.ok) {
+                            console.warn('Failed to set repeat mode:', await repeatResponse.text());
+                        } else {
+                            console.log('Repeat mode set to off.');
+                        }
+
+                        // Step 4: Set Shuffle mode to on
+                        console.log('Setting shuffle mode to on...');
+                        const shuffleResponse = await fetch(`https://api.spotify.com/v1/me/player/shuffle?state=true&device_id=${deviceId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${spotifyAccessToken}`
+                            }
+                        });
+                        if (!shuffleResponse.ok) {
+                            console.warn('Failed to set shuffle mode:', await shuffleResponse.text());
+                        } else {
+                            console.log('Shuffle mode set to on.');
+                        }
+                        
+                        // Step 5: Switch to playing the selected playlist on the active device (the SDK player)
+                        const playResponse = await fetch(`https://api.spotify.com/v1/me/player/play`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${spotifyAccessToken}`
+                            },
+                            body: JSON.stringify({
+                                context_uri: playlistUri,
+                                offset: {"position": 0}, // Start from the first track in the playlist (will skip to a random one later)
+                                position_ms: 0, // Start from the beginning
+                                device_id: deviceId,
+                            })
+                        });
+
+                        if (!playResponse.ok) {
+                            const error = await playResponse.json();
+                            console.error('Error starting playlist playback:', error);
+                            message.textContent = `Failed to start playlist: ${error.error.message || 'Unknown error'}`;
+                            return;
+                        }
+
+                        spotifyPlayer.pause().then(() => { // We don't actuallly want to play the first song that comes up in the new playlist
+                            console.log('Paused playback after starting playlist.');
+                        }).catch(err => {
+                            console.error('Error pausing after starting playlist:', err);
+                        });
+                        console.log('Playlist successfully requested to play.');
+                        playlistButton.disabled = false; // re-enable this button
+
+                        /*
+                        message.textContent = 'Playlist loaded and playing!'; // Message for successful start
+                        playButton.style.display = 'block'; // Show toggle play button
+
+                        // Step 6: Skip to next track
+                        // can use spotifyPlayer.nextTrack(), but leaving this out for now because I think we might already
+                        // be getting a random track
+
+                        // Get current state to verify playback
+                        spotifyPlayer.getCurrentState().then(state => {
+                            if (state && state.track_window.current_track) {
+                                console.log('Currently Playing (after play command):', state.track_window.current_track.name);
+                            } else {
+                                console.log('Player state unknown after play command.');
+                            }
+                        });
+                        */
+
+                    } catch (error) {
+                        message.textContent = 'An error occurred while loading the player.';
+                        console.error('Frontend error loading player:', error);
+                    }
+                }
+
+                // If a new playlist is submitted, re-initialize the whole game
+                if (playlistId != currentPlaylistId) {
+                    currentPlaylistId = playlistId; // Update current playlist ID
+                    currentPlaylistTracks = []; // Reset tracks for new playlist
+                    
+                    // Fetch playlist items
+                    try {
+                        let allTracks = [];
+                        let offset = 0;
+                        let limit = 50; // Max per request
+                        
+                        // Loop to get all tracks (using API's pagination for playlist items)
+                        while (true) {
+                            const playlistResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?market=US&fields=items(track(name,uri,artists,album(images)))&limit=${limit}&offset=${offset}`, {
+                                // TODO: this is where the current issue is. Can't figure out why the API call isn't right
+                                headers: {'Authorization': `Bearer ${spotifyAccessToken}`}
+                            });
+
+                            if (!playlistResponse.ok) {
+                                const error = await playlistResponse.json();
+                                message.textContent = `Error fetching playlist tracks: ${error.error.message || 'Unknown error'}`;
+                                console.error('Error fetching playlist tracks:', error);
+                                return;
+                            }
+
+                            const data = await playlistResponse.json();
+                            const items = data.items.filter(item => item.track); // Filter out null tracks
+
+                            allTracks = allTracks.concat(items.map(item => ({
+                                name: item.track.name,
+                                uri: item.track.uri,
+                                artists: item.track.artists.map(a => a.name).join(', '),
+                                albmArt: item.track.album.images[0]?.url || '' // Get largest album art
+                            })));
+
+                            if (data.next) {
+                                offset += limit; // move to next page
+                            } else {
+                                break; // No more pages
+                            }
+                        }
+
+                        if (allTracks.length === 0) {
+                            message.textContent = 'No tracks found in this playlist. Try a different playlist.';
+                            console.warn('No tracks found in playlist:', playlistId);
+                            return;
+                        }
+
+                        currentPlaylistTracks = allTracks;
+                        console.log('Fetched playlist tracks:', currentPlaylistTracks);
+                    } catch (error) {
+                        message.textContent = 'Error fetching playlist tracks. Please check the ID and try again.';
+                        console.error('Error fetching playlist tracks:', error);
+                        return;
+                    }
+                } // end if (playlistId != currentPlaylistId)
+
+                // Game start
+                resetGame();
+            });
+
+            // Toggle Play button functionality
+            playButton.addEventListener('click', async () => {
+                if (spotifyPlayer) {
+                    const currentState = await spotifyPlayer.getCurrentState();
+                    if (currentState && currentState.paused) {
+                        if (currentState.position >= currentPlayLimit - 150) {
+                            // If paused at the end of a segment (or very close to the end), reset to start
+                            console.log('Resuming playback from start after pause at segment end.');
+                            await spotifyPlayer.seek(0); // Reset to start
+                        }
+                        spotifyPlayer.resume().then(() => {
+                            console.log('Resumed playback.');
+                        }).catch(err => console.error('Error resuming playback:', err));
+                    } else if (currentState && !currentState.paused) {
+                        spotifyPlayer.pause().then(() => {
+                            console.log('Paused playback.');
+                        }).catch(err => console.error('Error pausing playback:', err));
+                    } else {
+                        // If no current state, but track is loaded (e.g. after reset), replay from 0
+                        if (correcttrackUri && deviceId) {
+                            console.log('Restarted playback from 0ms.');
+                            await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${spotifyAccessToken}`
+                                },
+                                body: JSON.stringify({
+                                    uris: [correctTrackUri],
+                                    position_ms: 0
+                                })
+                            });
+                        } else {
+                            message.textContent = 'No track to play. Submit a playlist.';
+                        }
+                    }
+                } else {
+                    message.textContent = 'Spotify Player is not initialized.';
+                }
+            });
+
+            // Skip this guess
+            skipButton.addEventListener('click', () => {
+                if (spotifyPlayer) {
+                    spotifyPlayer.pause().then(() => {
+                        console.log('Paused playback for skipping guess.');
+                        resetProgressBar(false);
+
+                        // add a blank guess to table
+                        addGuessToTable('(skipped)', false);
+                        guessTextInput.value = ''; // clear input after guess
+                        suggestionsList.style.display = 'none'; // Hide suggestions
+
+                        // Adjust guess number and check if game is over
+                        currentGuessNumber++;
+                        if (currentGuessNumber < MAX_GUESSES) {
+                            currentPlayLimit = GUESS_TIMES[currentGuessNumber]; // Update current play limit for next guess
+                            gameFeedback.textContent = `Skipped guess. You have ${MAX_GUESSES - currentGuessNumber} guesses left.`;
+                            gameFeedback.style.color = '#ee2000'; // Red for incorrect
+                            gameEndControls.style.display = 'flex';
+                            // Automatically restart playing for next segment
+                            if (spotifyPlayer) {
+                                spotifyPlayer.seek(0).then(() => {
+                                    spotifyPlayer.resume();
+                                });
+                            }
+                        } else {
+                            gameFeedback.textContent = `Game over! The song was ${correctTrackName}.`;
+                            gameFeedback.style.color = '#ee2000'; // Red for game over
+                            gameEndControls.style.display = 'flex';
+                            submitGuessButton.disabled = true;
+                            guessTextInput.disabled = true;
+                            playButton.disabled = true; // no more playing once game over
+                            skipButton.disabled = true;
+                            nextTrackButton.style.display = 'block'; // show next track button
+                            message.textContent = '';
+                        }
+                        
+                        console.log(`Guess ${currentGuessNumber}: skipped`);
+                    }).catch(err => console.error('Error pausing playback for skip:', err));
+                } else {
+                    message.textContent = 'Spotify Player is not initialized.';
+                }
+            });
+
+            // Autosuggestion and guess submission logic
+            guessTextInput.addEventListener('input', () => {
+                const input = guessTextInput.value.toLowerCase().trim();
+                if (input.length < 1) { // only show suggestions if at least 1 char typed
+                    suggestionsList.style.display = 'none'; // Hide if too short
+                    return;
+                }
+
+                suggestionsList.innerHTML = ''; // clear previous suggestions
+                const filteredTracks = currentPlaylistTracks.filter(track => 
+                    track.name.toLowerCase().includes(input) ||
+                    track.artists.toLowerCase().includes(input)
+                );
+
+                if (filteredTracks.length > 0) {
+                    filteredTracks.slice(0, 10).forEach(track => {
+                        // show top 10 suggestions
+                        const div = document.createElement('div');
+                        div.textContent = `${track.name} by ${track.artists}`;
+                        div.dataset.trackName = track.name; // Store full track name
+                        div.addEventListener('click', () => {
+                            guessTextInput.value = div.dataset.trackName;
+                            suggestionsList.style.display = 'none';
+                        });
+                        suggestionsList.appendChild(div);
+                    });
+                    suggestionsList.style.display = 'block'; // show suggestions
+                } else {
+                    suggestionsList.style.display = 'none'; // no matches
+                }
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', (event) => {
+                if (!guessInputContainer.contains(event.target)) {
+                    suggestionsList.style.display = 'none';
+                }
+            });
+
+            // Submit guess button functionality
+            submitGuessButton.addEventListener('click', async () => {
+                const guess = guessTextInput.value.trim();
+                if (!guess) {
+                    message.textContent = 'Please enter a guess.';
+                    return;
+                }
+
+                // Stop playback before revealing guess result
+                if (spotifyPlayer) {
+                    await spotifyPlayer.pause();
+                }
+
+                const isCorrect = (guess.toLowerCase() === correctTrackName.toLowerCase());
+                addGuessToTable(guess, isCorrect);
+                guessTextInput.value = ''; // clear input after guess
+                suggestionsList.style.display = 'none'; // Hide suggestions
+
+                if (isCorrect) {
+                    gameFeedback.textContent = `Congratulations! The song was ${guess}. `;
+                    gameFeedback.style.color = '#1DB954';
+                    gameEndControls.style.display = 'flex';
+                    submitGuessButton.disabled = true;
+                    guessTextInput.disabled = true;
+                    playButton.disabled = true; // no more playing once correct
+                    skipButton.disabled = true;
+                    nextTrackButton.style.display = 'block'; // show next track button
+                    message.textContet = '';
+                } else {
+                    currentGuessNumber++;
+                    if (currentGuessNumber < MAX_GUESSES) {
+                        currentPlayLimit = GUESS_TIMES[currentGuessNumber]; // Update current play limit for next guess
+                        gameFeedback.textContent = `Incorrect guess. You have ${MAX_GUESSES - currentGuessNumber} guesses left.`;
+                        gameFeedback.style.color = '#ee2000'; // Red for incorrect
+                        gameEndControls.style.display = 'flex';
+                        // Automatically restart playing for next segment
+                        if (spotifyPlayer) {
+                            spotifyPlayer.seek(0).then(() => {
+                                spotifyPlayer.resume();
+                            });
+                        }
+                    } else {
+                        gameFeedback.textContent = `Game over! The song was ${correctTrackName}.`;
+                        gameFeedback.style.color = '#ee2000'; // Red for game over
+                        gameEndControls.style.display = 'flex';
+                        submitGuessButton.disabled = true;
+                        guessTextInput.disabled = true;
+                        playButton.disabled = true; // no more playing once game over
+                        skipButton.disabled = true;
+                        nextTrackButton.style.display = 'block'; // show next track button
+                        message.textContent = '';
+                    }
+                }
+                console.log(`Guess ${currentGuessNumber}: ${guess} - Correct: ${isCorrect}`);
+            });
+
+            nextTrackButton.addEventListener('click', () => {
+                resetGame(); // load a new random track and reset UI
+            });
+
+        </script>
+    </div>
+	<!-- Bootstrap JS import -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>

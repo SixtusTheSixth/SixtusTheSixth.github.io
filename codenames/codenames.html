@@ -18,7 +18,7 @@
     <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
     <style>
         body {
-            background-image: url('../blog/blog_assets/common/paper_bg2.jpeg');
+            background-image: url('/blog/blog_assets/common/paper_bg2.jpeg');
         }
 
         .footer {
@@ -83,16 +83,14 @@
         <div class="row">
             <div class="form-group"> <!-- change to a slider 1-6? -->
                 <label for="formControlNumWords">How many words do you want to connect?</label>
-                <div class="container-sm">
-                    <select class="form-select text-center" id="formControlNumWords" style="width: 70px">
-                        <option>1</option>
-                        <option selected>2</option>
-                        <option>3</option>
-                        <option>4</option>
-                        <option>5</option>
-                        <option>6</option>
-                    </select>
-                </div>
+                <select class="form-select" id="formControlNumWords" style="width: 70px; margin-top: 5px; margin-bottom: 5px">
+                    <option>1</option>
+                    <option selected>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                </select>
                 <label>Input your words below:</label>
                 <div class="row" id="textareaContainer">
                     <!-- Textareas will be added here dynamically -->
@@ -111,7 +109,7 @@
         <div class="row col-6 col-md-4">
             <textarea rows=2 disabled placeholder="Results will show here..." id="output" style="resize: none;font-family:Candara, Verdana, sans-serif;margin-left: 3%"></textarea>
         </div>
-        <script type="py" src="./codenames.py" config="./pyscript.json"></script>
+        <script type="py" src="/codenames/codenames.py" config="./pyscript.json"></script>
         <div class="row">
             <p></p> <!-- spacing -->
             <p>Explanation:</p>
