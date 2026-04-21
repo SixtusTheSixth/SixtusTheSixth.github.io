@@ -13,9 +13,6 @@
         };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <!-- PyScript CSS + setup -->
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
-    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
     <style>
         body {
             background-image: url('/blog/blog_assets/common/paper_bg2.jpeg');
@@ -74,11 +71,6 @@
             <p>The program works by representing each word's meaning as a vector, and finding the words which maximize the product of their vectors' cosine similarity with 
                 each of your input words' vectors (see further explanation below). The output words are in decreasing order of relevance.
             </p>
-            <p>
-                Currently, the page freezes annoyingly while it's running Python in the background, but I'm putting this online anyways because I don't want to 
-                spend more than a few hours debugging it. Maybe I'll try again later, but if you would want to help and/or know PyScript, please 
-                <a href="mailto:anand_advani@brown.edu" target="_blank">let me know</a>!
-            </p>
         </div>
         <div class="row">
             <div class="form-group"> <!-- change to a slider 1-6? -->
@@ -101,7 +93,7 @@
         <div></div>
         <div class="row button-row mt-lg-1 col-4 col-md-2" style="margin-top: 10%">
             <!-- <p></p> <p></p> spacing -->
-            <button py-click="get_words" class="btn btn-outline-success" id="getWordsButton" style="margin-left: 6%; font-family:Candara, Verdana, sans-serif">
+            <button class="btn btn-outline-success" id="getWordsButton" style="margin-left: 6%; font-family:Candara, Verdana, sans-serif">
                 Get Words
             </button>
             <p></p> <!-- spacing -->
@@ -109,7 +101,6 @@
         <div class="row col-6 col-md-4">
             <textarea rows=2 disabled placeholder="Results will show here..." id="output" style="resize: none;font-family:Candara, Verdana, sans-serif;margin-left: 3%"></textarea>
         </div>
-        <script type="py" src="/codenames/codenames.py" config="./pyscript.json"></script>
         <div class="row">
             <p></p> <!-- spacing -->
             <p>Explanation:</p>
@@ -131,41 +122,46 @@
                 of large language models, and before that there were two popular (related) statistical word vector models, word2vec and GloVe.
             </p>
             <p>I use pre-trained GloVe vectors here. Specifically, I'm
-                using 50-dimensional vectors trained on a 6 billion-word dataset with a vocabulary of ~400,000 (from the 
-                <a href="https://nlp.stanford.edu/projects/glove/">official website</a>), which I think is definitely enough for Codenames.
-                Also, since this is a static website, I'm actually loading all the vectors into your browser and running a Python script on them, so that's probably 
-                taking at least a couple hundred megabytes of your RAM (sorry! it was a lot worse before). I've tried to mitigate this by deleting
-                the vectors for a lot of weird super-rare words and numbers, leaving a vocabulary of ~73,300.
+                starting with 50-dimensional vectors trained on a 6 billion-word dataset with a vocabulary of ~400,000 (from the 
+                <a href="https://nlp.stanford.edu/projects/glove/">official website</a>). I then take the first 40,000 most common words, removing non-words like "42" or
+                "," as well as some foreign words and proper nouns that can't be used as clues in Codenames. I did have to manually add some multi-word phrases
+                (e.g. "ice cream", "new york") that appear in Codenames but not in the GloVe vocabulary, which only contains single words. I estimated those with
+                some combination of the vectors of the individual words: for example, the vector for "ice cream" is the average of the vectors for "ice" and "cream".
             </p>
             <p>
                 As described in the GloVe <a href="https://nlp.stanford.edu/pubs/glove.pdf">paper</a> (on page 8), I'm calculating similarity scores between two words by 
                 taking the cosine similarity between their word vectors
-                (= dot product divided by product of the vectors' magnitudes). But first, I normalize each element of the vector along the entire vocab; that is, if the
-                31st element of each word's vector is in the range 1&ndash;5, then I would multiply the 31st each vector by the same number so that the sum of their squares
-                add up to 1. They would then be roughly in the range 0.001&ndash;0.005 (if the vocabulary size is 400,000).
+                (= dot product divided by product of the vectors' magnitudes). But first, I normalize the vectors so that their magnitudes are 1, which means that
+                the cosine similarity is just the dot product. This is because the vectors by default vary quite a bit in magnitude.
             </p>
             <p>
-                My actual algorithm is relatively straightforward. I take the cosine similarity of each word in the vocabulary with each of the input words. Then I multiply
-                those cosine similarities, and call that the relevance score for that word. I'm multiplying rather than adding them to try to penalize the situation
-                where a word is really close to one of the input words but far from the others, although that still seems to be an issue. The algorithm just finds the 
-                10 words with the highest relevance scores, and presto&mdash;Codenames!
+                To find the best suggestions for multiple input words, I take the cosine similarity of each word in the vocabulary with each of the input words. Then I take
+                the geometric mean of these cosine similarities, and call that the relevance score for the word. The geometric mean is to penalize the situation
+                where a word is really close to one of the input words but far from the others. The algorithm just finds the 10 words with the highest relevance scores, 
+                excluding the input words themselves.
+            </p>
+            <p>
+                I use one more optimization&mdash;in the base Codenames game, there is a limited vocabulary of 400 words. I can pre-compute the top 1000 or 3000 closest words
+                to each of these and their cosine similarities. Then, when two real Codenames words are given as input, I can just find the intersection of those two sets
+                of 1000 or 3000 similar words, and order the intersection by the geometric mean of similarity scores. This is much faster than calculating cosine similarities
+                with all 40,000 words in the GloVe vocabulary, but in practice both approaches seem fast enough that most of the lag is due to the network delay querying my 
+                server where the computation is performed.
             </p>
             <p>
                 In the future, it would not be difficult to incorporate avoiding the opposing team's words and the assassin word, but this program as is struggles with more
                 than two words, so I don't think it would be very useful to implement that. It would also be very interesting to input a set of 8 or 9 words (as in 
-                the beginning of the game) and find the partition into sets of 2 or 3 or 4 that maximizes the relatedness in each set, but this would run up against
-                RAM and processing time requirements.
-            </p>
-            <p>
-                Mainly, I wonder if there's a better way to do this from a website that's deployed on GitHub Pages than call a Python
-                script with numpy. I could probably translate the whole thing to JavaScript and solve the issue of the site freezing while it's processing,
-                but that would still involve loading the vectors into the browser. Web dev isn't my forte, but in my current understanding, I don't
-                have any control over my server, so I can't, like, load things into background processes to request information from, like I could with a Node or Flask
-                application.
+                the beginning of the game) and find the partition into sets of 2 or 3 or 4 that maximizes the relatedness in each set.
             </p>
             <p>
                 In the meantime, enjoy! As I'm writing this, I am realizing that many people on the Internet have had the same idea, but it was still cool to put
                 together something that is personally useful.
+            </p>
+            <p>
+                <i>Update 4/26:</i> This page works properly now. Previously, I was using PyScript to load a larger vocabulary of ~73,300 GloVe vectors into the user's 
+                browser and then perform the similarity algorithm in the browser, which would take a couple hundred megabytes of the user's RAM and was rather slow. 
+                I've now offloaded the computation onto a Hugging Face Space, which I query through a proxy hosted on Netlify in order to more securely store my 
+                Hugging Face private token. I was also previously normalizing the vectors along the wrong axis: I was normalizing along each feature instead of
+                making the length of each vector 1; this was because of my misreading the GloVe paper and was causing the results to be somewhat less useful.
             </p>
         </div>
     </div>
@@ -202,6 +198,42 @@
 
             // Trigger the change event to initialize the textareas
             numWords.dispatchEvent(new Event('change'));
+        });
+
+        const skip_button = document.getElementById('getWordsButton');
+        skip_button.addEventListener('click', async function() {
+            // Disable the button while loading
+            skip_button.disabled = true;
+            skip_button.innerText = 'Loading...';
+
+            // Get the number of words
+            const numtextareas = parseInt(document.getElementById('formControlNumWords').value);
+            let words = [];
+            for (let i = 0; i < numtextareas; i++) {
+                const word = document.getElementById(`word${i+1}`).value.trim();
+                if (word) {
+                    words.push(word.replaceAll(' ', '')); // remove spaces to match how I've saved multi-word Codenames words in the vocab
+                }
+            }
+
+            // Make the API call to get the words
+            const response = await fetch('https://aquilifer-netlify-codenames.netlify.app/clues?' + new URLSearchParams({ 
+                'words': words.join(',') // send the words as a comma-separated string
+            }).toString());
+
+            // Fill words into textareas
+            if (response.ok) {
+                const data = await response.json();
+                // combine the keys of data.results into a single comma-separated string and put it in the output textarea
+                const output = document.getElementById('output');
+                output.value = data.results.map(r => r.word).join(', ');
+            } else {
+                alert('Error fetching words. Please try again.');
+            }
+
+            // Re-enable the button
+            skip_button.disabled = false;
+            skip_button.innerText = 'Get Words';
         });
     </script>
 </body>

@@ -1,6 +1,0 @@
-{
-    "packages": ["numpy"],
-    "files": {
-        "glove_6B_50d.txt": "./glove_6B_50d.txt"
-    }
-}
