@@ -677,8 +677,13 @@
             }
 
             // Authorization Button
+            // Replace the hardcoded URL in the authorize button handler:
+            const FUNCTIONS_BASE = window.location.hostname === '127.0.0.1'
+                ? 'http://127.0.0.1:8888'  // make sure `netlify dev` serves at port 8888
+                : 'https://aquilifer-netlify-spotify.netlify.app';
+
             authorizeButton.addEventListener('click', () => {
-                window.location.href = 'https://aquilifer-netlify-spotify.netlify.app/.netlify/functions/get-spotify-token';
+                window.location.href = FUNCTIONS_BASE + '/.netlify/functions/get-spotify-token';
             });
             
             // Submit Playlist Button
