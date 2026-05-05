@@ -297,8 +297,11 @@
         
         <div class="row">
             <div id="player-controls-container" style="display: none;">
-                <button id="play-button" class="btn btn-secondary fs-6">Play/Pause</button>
-                <button id="skip-button" class="btn btn-danger fs-6">Skip Guess</button>
+                <div class="d-flex gap-2 flex-nowrap">
+                    <button id="play-button" class="btn btn-secondary fs-6">Play/Pause</button>
+                    <button id="skip-button" class="btn btn-danger fs-6">Skip Guess</button>
+                    <button id="give-up-button" class="btn btn-warning fs-6">Give Up</button>
+                </div>
                 <div id="progress-container">
                     <div id="progress-bar"></div>
                     <!-- Break points -->
@@ -327,8 +330,9 @@
             <div class="col-auto align-middle">    
                 <p class="align-middle" id="game-feedback"></p>
             </div>
-            <div class="col-auto">
+            <div class="col-auto d-flex gap-2 flex-nowrap align-items-center">
                 <button id="next-track-button" class="btn btn-success">Next Track</button>
+                <button id="play-full-song-button" class="btn btn-info" style="display:none;">Play Full Song</button>
             </div>
         </div>
         
@@ -358,6 +362,8 @@
             const nextTrackButton = document.getElementById('next-track-button');
             const gameEndControls = document.getElementById('game-end-controls');
             const gameFeedback = document.getElementById('game-feedback');
+            const giveUpButton = document.getElementById('give-up-button');
+            const playFullSongButton = document.getElementById('play-full-song-button');
 
             const anchor = document.getElementById('anchor'); // For auto-scrolling to bottom of page
             
@@ -378,6 +384,7 @@
             let correctTrackName = '';
             let correctTrackUri = ''; // To store the URI of the correct track
             let currentPlayLimit = GUESS_TIMES[0]; // dynamic limit based on currentGuessNumber
+            let isPlayingFullSong = false;
 
             let currentPlaylistTracks = []; // stores all tracks from fetched playlsit
             let currentPlaylistId = ''; // stores the current playlist ID being played
@@ -443,12 +450,14 @@
                 suggestionsList.style.display = 'none';
                 gameEndControls.style.display = 'none';
                 nextTrackButton.style.display = 'none';
+                playFullSongButton.style.display = 'none';
                 submitGuessButton.disabled = false;
                 guessTextInput.disabled = false;
                 gameOver = false;
                 currentGuessNumber = 0; 
                 currentPlayLimit = GUESS_TIMES[0]; // Reset to first guess limit
                 message.textContent = 'Loading next song...';
+                isPlayingFullSong = false;
 
                 if (spotifyPlayer && deviceId){
                     try {
@@ -518,6 +527,7 @@
                         playerControlsContainer.style.display = 'block';
                         guessInputContainer.style.display = 'block'; // show guess input
                         guessTableContainer.style.display = 'flex';
+                        giveUpButton.style.display = 'block'; // re-show for new round
 
                     } catch (error) {
                         console.error('Error advancing to next track:', error);
@@ -616,7 +626,7 @@
                     }
 
                     // If current playback exceeded 16 seconds (or current limit, for previous guesses)
-                    if (position >= currentPlayLimit && !state.paused) {
+                    if (position >= currentPlayLimit && !state.paused && !isPlayingFullSong) {
                         // console.log(`State: ${state.paused}`); // debugging
                         if (progressInterval){
                             clearInterval(progressInterval);
@@ -643,14 +653,18 @@
                                 spotifyPlayer.getCurrentState().then(async currentState => {
                                     if (currentState && !currentState.paused) {
                                         const currentPos = currentState.position;
-                                        if (currentPos < currentPlayLimit) {
-                                            const progressPercentage = (currentPos / MAX_PREVIEW_TIME) * 100;
+                                        if (currentPos < currentPlayLimit || isPlayingFullSong) {
+                                            const progressPercentage = isPlayingFullSong
+                                                ? (currentPos / duration) * 100
+                                                : (currentPos / MAX_PREVIEW_TIME) * 100;
                                             progressBar.style.width = `${progressPercentage}%`;
                                         } else {
                                             // Beyond current play limit, pause and clear the interval
                                             // should be handled by the main if statement before this (where position >= currentPlayLimit)
                                             // this is a fallback
-                                            await spotifyPlayer.pause();
+                                            if (!isPlayingFullSong) {
+                                                await spotifyPlayer.pause();
+                                            }
                                             // no longer seek to position 0 or reset progress bar
                                             if (progressInterval) {
                                                 clearInterval(progressInterval);
@@ -663,7 +677,9 @@
                                         }
                                     } else if (currentState && currentState.paused) {
                                         // If paused, just ensure bar is displayed at current position
-                                        const progressPercentage = (currentState.position / MAX_PREVIEW_TIME) * 100;
+                                        const progressPercentage = isPlayingFullSong
+                                            ? (currentPos / duration) * 100
+                                            : (currentPos / MAX_PREVIEW_TIME) * 100;
                                         progressBar.style.width = `${progressPercentage}%`;
                                         // Don't stop interval, as it might resume -- TODO: do I need to do this?
                                     } else {
@@ -678,7 +694,9 @@
                             }, 100); // Update every 100ms for smooth animation
                         } else {
                             // If already running and playing, update current width
-                            const progressPercentage = (position / MAX_PREVIEW_TIME) * 100;
+                            const progressPercentage = isPlayingFullSong
+                                ? (currentPos / duration) * 100
+                                : (currentPos / MAX_PREVIEW_TIME) * 100;
                             progressBar.style.width = `${progressPercentage}%`;
                         }
                     } else if (state.paused) { // If paused (but within current time limit)
@@ -688,7 +706,9 @@
                             progressInterval = null; // Reset interval ID
                         }
                         // Ensure bar shows current position when paused
-                        const progressPercentage = (position / MAX_PREVIEW_TIME) * 100;
+                        const progressPercentage = isPlayingFullSong
+                            ? (currentPos / duration) * 100
+                            : (currentPos / MAX_PREVIEW_TIME) * 100;
                         progressContainer.style.display = 'block'; // keep bar visible
                         progressBar.style.width = `${progressPercentage}%`;
                     } else {
@@ -1038,6 +1058,8 @@
                         skipButton.disabled = true;
                         nextTrackButton.style.display = 'block'; // show next track button
                         message.textContent = '';
+                        giveUpButton.style.display = 'none';
+                        playFullSongButton.style.display = 'block';
                     }
                     temporarilyDisableControls(); // prevent rapid clicks causing issues
                     console.log(`Guess ${currentGuessNumber}: skipped`);
@@ -1112,6 +1134,8 @@
                     skipButton.disabled = true;
                     nextTrackButton.style.display = 'block'; // show next track button
                     message.textContent = '';
+                    giveUpButton.style.display = 'none';
+                    playFullSongButton.style.display = 'block';
                 } else {
                     currentGuessNumber++;
                     if (currentGuessNumber < MAX_GUESSES) {
@@ -1140,6 +1164,8 @@
                         skipButton.disabled = true;
                         nextTrackButton.style.display = 'block'; // show next track button
                         message.textContent = '';
+                        giveUpButton.style.display = 'none';
+                        playFullSongButton.style.display = 'block';
                     }
                 }
                 temporarilyDisableControls(); // prevent rapid clicks causing issues
@@ -1149,6 +1175,46 @@
 
             nextTrackButton.addEventListener('click', () => {
                 resetGame(); // load a new random track and reset UI
+            });
+
+            // Give up (skip to max guess number)
+            giveUpButton.addEventListener('click', async () => {
+                gameOver = true;
+                giveUpButton.style.display = 'none';
+                if (spotifyPlayer) await spotifyPlayer.pause();
+                resetProgressBar(false);
+
+                // Fill remaining guess rows as skipped
+                while (currentGuessNumber < MAX_GUESSES) {
+                    addGuessToTable('(gave up)', false);
+                    currentGuessNumber++;
+                }
+
+                gameFeedback.textContent = `You gave up! The song was "${correctTrackName}".`;
+                gameFeedback.style.color = '#ee2000';
+                gameEndControls.style.display = 'flex';
+                submitGuessButton.disabled = true;
+                guessTextInput.disabled = true;
+                playButton.disabled = true;
+                skipButton.disabled = true;
+                playFullSongButton.style.display = 'block';
+                nextTrackButton.style.display = 'block';
+                message.textContent = '';
+                scrollToBottom();
+            });
+
+            // Play full song (from start), shows when gameOver == true
+            playFullSongButton.addEventListener('click', async () => {
+                isPlayingFullSong = true;
+                progressContainer.style.display = 'block';
+                await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${spotifyAccessToken}`
+                    },
+                    body: JSON.stringify({ uris: [correctTrackUri], position_ms: 0 })
+                });
             });
 
         </script>
