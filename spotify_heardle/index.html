@@ -177,7 +177,7 @@
         }
         #suggestions-list {
             position: absolute;
-            top: 100%; /* Position below the input */
+            bottom: 100%; /* Position below the input */
             left: 0;
             right: 0;
             background-color: #3e3e3e;
@@ -297,7 +297,7 @@
         
         <div class="row">
             <div id="player-controls-container" style="display: none;">
-                <button id="play-button" class="btn btn-secondary fs-6">Play</button>
+                <button id="play-button" class="btn btn-secondary fs-6">Play/Pause</button>
                 <button id="skip-button" class="btn btn-danger fs-6">Skip Guess</button>
                 <div id="progress-container">
                     <div id="progress-bar"></div>
@@ -313,12 +313,12 @@
 
         <div class="row">
             <div id="guess-input-container" style="display: none;">
-                <div class="input-group mt-3">
-                    <button class="btn btn-success" type="button" id="submit-guess-button">Guess</button>
-                    <input type="text" id="guess-text-input" class="form-control" placeholder="Start typing your guess...">
-                </div>
                 <div id="suggestions-list" style="display: none;">
                     <!-- Suggestions will appear here -->
+                </div>
+                <div class="input-group"> <!-- mt-3 -->
+                    <button class="btn btn-success" type="button" id="submit-guess-button">Guess</button>
+                    <input type="text" id="guess-text-input" class="form-control" placeholder="Start typing your guess...">
                 </div>
             </div>
         </div>
@@ -373,6 +373,7 @@
             const GUESS_TIMES = [1000, 2000, 4000, 7000, 11000, 16000]; // Breakpoints in milliseconds for guesses
             const MAX_GUESSES = 6; // Maximum number of guesses allowed
 
+            let gameOver = false; // either correct, max guesses reached, or gave up
             let currentGuessNumber = 0; // To track the current guess number (0-indexed)
             let correctTrackName = '';
             let correctTrackUri = ''; // To store the URI of the correct track
@@ -444,6 +445,7 @@
                 nextTrackButton.style.display = 'none';
                 submitGuessButton.disabled = false;
                 guessTextInput.disabled = false;
+                gameOver = false;
                 currentGuessNumber = 0; 
                 currentPlayLimit = GUESS_TIMES[0]; // Reset to first guess limit
                 message.textContent = 'Loading next song...';
@@ -613,7 +615,7 @@
                         correctTrackUri = currentTrack.uri; // Update to new track URI
                     }
 
-                    // If current playback exceeded 16 seconds
+                    // If current playback exceeded 16 seconds (or current limit, for previous guesses)
                     if (position >= currentPlayLimit && !state.paused) {
                         // console.log(`State: ${state.paused}`); // debugging
                         if (progressInterval){
@@ -799,34 +801,6 @@
                         }
                         console.log('Playback transferred to SDK device.');
 
-                        // Not sure the following is necessary
-                        // This is a more robust way to wait for the device to be truly active.
-                        // We'll use a Promise and the player_state_changed listener to confirm.
-                        /*
-                        const playbackReadyPromise = new Promise(resolve => {
-                            const stateChangeListener = (state) => {
-                                if (state && state.device_id === deviceId && !state.paused) { // Check if our device is active and playing
-                                    // If the SDK reports it's playing, it means it's ready for direct play commands
-                                    spotifyPlayer.removeListener('player_state_changed', stateChangeListener); // Clean up listener
-                                    resolve();
-                                } else if (state && state.device_id === deviceId && state.paused && state.playback_id) {
-                                    // If it's our device, but paused (e.g., from previous action), consider it ready to accept a play command
-                                    spotifyPlayer.removeListener('player_state_changed', stateChangeListener); // Clean up listener
-                                    resolve();
-                                }
-                            };
-                            spotifyPlayer.addListener('player_state_changed', stateChangeListener);
-
-                            // Add a timeout in case state change doesn't happen for some reason
-                            setTimeout(() => {
-                                spotifyPlayer.removeListener('player_state_changed', stateChangeListener);
-                                console.warn('Timeout waiting for playback to be ready after transfer.');
-                                resolve(); // Resolve anyway to proceed, but log a warning
-                            }, 2000); // Wait up to 2 seconds
-                        });
-                        await playbackReadyPromise; // Wait for player to be ready
-                        */
-
                         // Step 3: Set Repeat mode to playlist
                         console.log('Setting repeat mode to off...');
                         const repeatResponse = await fetch(`https://api.spotify.com/v1/me/player/repeat?state=context&device_id=${deviceId}`, {
@@ -970,6 +944,18 @@
                 resetGame();
             });
 
+            // for preventing multiple clicks in quick succession that cause a race condition and the song playing past the limit
+            function temporarilyDisableControls(ms = 800) {
+                skipButton.disabled = true;
+                submitGuessButton.disabled = true;
+                setTimeout(() => {
+                    if (!gameOver) {
+                        skipButton.disabled = false;
+                        submitGuessButton.disabled = false;
+                    }
+                }, ms);
+            }
+
             // Toggle Play button functionality
             playButton.addEventListener('click', async () => {
                 if (spotifyPlayer) {
@@ -1012,81 +998,83 @@
             });
 
             // Skip this guess
-            skipButton.addEventListener('click', () => {
+            skipButton.addEventListener('click', async () => {
                 if (spotifyPlayer) {
-                    spotifyPlayer.pause().then(() => {
-                        console.log('Paused playback for skipping guess.');
-                        resetProgressBar(false);
+                    await spotifyPlayer.pause()
+                    console.log('Paused playback for skipping guess.');
+                    resetProgressBar(false);
 
-                        // add a blank guess to table
-                        addGuessToTable('(skipped)', false);
-                        guessTextInput.value = ''; // clear input after guess
-                        suggestionsList.style.display = 'none'; // Hide suggestions
+                    // add a blank guess to table
+                    addGuessToTable('(skipped)', false);
+                    guessTextInput.value = ''; // clear input after guess
+                    suggestionsList.style.display = 'none'; // Hide suggestions
 
-                        // Adjust guess number and check if game is over
-                        currentGuessNumber++;
-                        if (currentGuessNumber < MAX_GUESSES) {
-                            currentPlayLimit = GUESS_TIMES[currentGuessNumber]; // Update current play limit for next guess
-                            gameFeedback.textContent = `Skipped guess. You have ${MAX_GUESSES - currentGuessNumber} guesses left.`;
-                            gameFeedback.style.color = '#ee2000'; // Red for incorrect
-                            gameEndControls.style.display = 'flex';
-                            // Automatically restart playing for next segment
-                            if (spotifyPlayer) {
-                                spotifyPlayer.seek(0).then(() => {
-                                    spotifyPlayer.resume();
-                                });
-                            }
-                        } else {
-                            gameFeedback.textContent = `Game over! The song was ${correctTrackName}.`;
-                            gameFeedback.style.color = '#ee2000'; // Red for game over
-                            gameEndControls.style.display = 'flex';
-                            submitGuessButton.disabled = true;
-                            guessTextInput.disabled = true;
-                            playButton.disabled = true; // no more playing once game over
-                            skipButton.disabled = true;
-                            nextTrackButton.style.display = 'block'; // show next track button
-                            message.textContent = '';
+                    // Adjust guess number and check if game is over
+                    currentGuessNumber++;
+                    if (currentGuessNumber < MAX_GUESSES) {
+                        currentPlayLimit = GUESS_TIMES[currentGuessNumber]; // Update current play limit for next guess
+                        gameFeedback.textContent = `Skipped guess. You have ${MAX_GUESSES - currentGuessNumber} guesses left.`;
+                        gameFeedback.style.color = '#ee2000'; // Red for incorrect
+                        gameEndControls.style.display = 'flex';
+                        // Automatically restart playing for next segment
+                        if (spotifyPlayer) {
+                            await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${spotifyAccessToken}`
+                                },
+                                body: JSON.stringify({ uris: [correctTrackUri], position_ms: 0 })
+                            });
                         }
-                        
-                        console.log(`Guess ${currentGuessNumber}: skipped`);
-                        scrollToBottom(); // scroll to end
-                    }).catch(err => console.error('Error pausing playback for skip:', err));
+                    } else {
+                        gameOver = true;
+                        gameFeedback.textContent = `Game over! The song was ${correctTrackName}.`;
+                        gameFeedback.style.color = '#ee2000'; // Red for game over
+                        gameEndControls.style.display = 'flex';
+                        submitGuessButton.disabled = true;
+                        guessTextInput.disabled = true;
+                        playButton.disabled = true; // no more playing once game over
+                        skipButton.disabled = true;
+                        nextTrackButton.style.display = 'block'; // show next track button
+                        message.textContent = '';
+                    }
+                    temporarilyDisableControls(); // prevent rapid clicks causing issues
+                    console.log(`Guess ${currentGuessNumber}: skipped`);
+                    scrollToBottom(); // scroll to end
                 } else {
                     message.textContent = 'Spotify Player is not initialized.';
                 }
             });
 
             // Autosuggestion and guess submission logic
-            guessTextInput.addEventListener('input', () => {
+            function updateSuggestions() {
                 const input = guessTextInput.value.toLowerCase().trim();
-                if (input.length < 1) { // only show suggestions if at least 1 char typed
-                    suggestionsList.style.display = 'none'; // Hide if too short
-                    return;
-                }
+                suggestionsList.innerHTML = '';
 
-                suggestionsList.innerHTML = ''; // clear previous suggestions
-                const filteredTracks = currentPlaylistTracks.filter(track => 
-                    track.name.toLowerCase().includes(input) ||
-                    track.artists.toLowerCase().includes(input)
+                const filteredTracks = currentPlaylistTracks.filter(track =>
+                    track.name.toLowerCase().includes(input)
                 );
 
                 if (filteredTracks.length > 0) {
                     filteredTracks.slice(0, 10).forEach(track => {
-                        // show top 10 suggestions
                         const div = document.createElement('div');
                         div.textContent = `${track.name} by ${track.artists}`;
-                        div.dataset.trackName = track.name; // Store full track name
+                        div.dataset.trackName = track.name;
                         div.addEventListener('click', () => {
                             guessTextInput.value = div.dataset.trackName;
                             suggestionsList.style.display = 'none';
                         });
                         suggestionsList.appendChild(div);
                     });
-                    suggestionsList.style.display = 'block'; // show suggestions
+                    suggestionsList.style.display = 'block';
                 } else {
-                    suggestionsList.style.display = 'none'; // no matches
+                    suggestionsList.style.display = 'none';
                 }
-            });
+            }
+
+            guessTextInput.addEventListener('input', updateSuggestions);
+            guessTextInput.addEventListener('focus', updateSuggestions);
 
             // Hide suggestions when clicking outside
             document.addEventListener('click', (event) => {
@@ -1114,6 +1102,7 @@
                 suggestionsList.style.display = 'none'; // Hide suggestions
 
                 if (isCorrect) {
+                    gameOver = true;
                     gameFeedback.textContent = `Congratulations! The song was ${guess}. `;
                     gameFeedback.style.color = '#1DB954';
                     gameEndControls.style.display = 'flex';
@@ -1122,7 +1111,7 @@
                     playButton.disabled = true; // no more playing once correct
                     skipButton.disabled = true;
                     nextTrackButton.style.display = 'block'; // show next track button
-                    message.textContet = '';
+                    message.textContent = '';
                 } else {
                     currentGuessNumber++;
                     if (currentGuessNumber < MAX_GUESSES) {
@@ -1131,12 +1120,17 @@
                         gameFeedback.style.color = '#ee2000'; // Red for incorrect
                         gameEndControls.style.display = 'flex';
                         // Automatically restart playing for next segment
-                        if (spotifyPlayer) {
-                            spotifyPlayer.seek(0).then(() => {
-                                spotifyPlayer.resume();
-                            });
-                        }
+                        // this is equivalent to spotifyPlayer.seek(0).then(() => spotifyPlayer.resume()), but more reliable
+                        await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${spotifyAccessToken}`
+                            },
+                            body: JSON.stringify({ uris: [correctTrackUri], position_ms: 0 })
+                        });
                     } else {
+                        gameOver = true;
                         gameFeedback.textContent = `Game over! The song was ${correctTrackName}.`;
                         gameFeedback.style.color = '#ee2000'; // Red for game over
                         gameEndControls.style.display = 'flex';
@@ -1148,6 +1142,7 @@
                         message.textContent = '';
                     }
                 }
+                temporarilyDisableControls(); // prevent rapid clicks causing issues
                 console.log(`Guess ${currentGuessNumber}: ${guess} - Correct: ${isCorrect}`);
                 scrollToBottom(); // scroll to end
             });
