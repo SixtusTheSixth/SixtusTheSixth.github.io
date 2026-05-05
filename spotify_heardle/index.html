@@ -19,13 +19,14 @@
             background-image: url('/assets/common/paper_bg2.jpeg');
             padding: 20px;
         }
-
+        /*
         .footer {
             position: absolute;
             bottom: 0;
             width: 80%;
             height: 60px;
         }
+        */
 
         .row {
             height: 100%;
@@ -92,7 +93,7 @@
         #message {
             margin-top: 5px;
             font-size: 0.9rem;
-            color: #f0f0f0;
+            color: #a9672e;
             min-height: 10px; /* Prevent layout shift */
         }
 
@@ -208,6 +209,10 @@
             font-weight: bold;
             text-align: left;
         }
+
+        #anchor {
+            height: 1px; /* just a small height to make auto-scrolling work */
+        }
         
     </style>
 </head>
@@ -223,12 +228,13 @@
         <p class="fs-6">
             Here, you can upload a link to your own Spotify playlist, and you'll be quizzed only on songs from that playlist. I made this because I was frustrated by
             the song selections of the original Heardle websites (<a href=https://heardlewordle.io/ target="_blank">here</a> or 
-            <a href=https://heardle.info/ target="_blank">here</a>). Credit for the idea also goes to my friend Owen Rollins.
+            <a href=https://heardle.info/ target="_blank">here</a>). Credit for the idea also goes to my friend Owen Rollins. In my experience, this game is best played
+            with friends, projected onto a shared screen.
         </p>
         <p class="fs-6">
             Unfortunately, due to changes in Spotify's API terms, you need to have a Spotify Premium account to use this. You can create one 
             <a href="https://www.spotify.com/signup/" target="_blank">here</a>. Additionally, only user-created playlists will work. Spotify-owned or
-            algorithmically created playlists are prohibited by the API.
+            algorithmically created playlists (Blends, Daily Mixes, Liked Songs, etc.) are prohibited by the API.
         </p>
     </div>
     
@@ -236,9 +242,10 @@
         <button id="authorize-button" class="btn btn-success">Log into Spotify to continue</button>
     </div>
     
-    <div class="row" id="demo-section" style="display: none;">
+    <div class="row" id="demo-section" style="display: none">
         <div class="row">
-            <p class="fs-6" style="word-wrap: break-word;">Enter a Spotify playlist link (e.g. https://open.spotify.com/playlist/7B2M7EVfDdCMeKbj33dVYd for my whistling playlist):</p>
+            <p class="fs-6" style="word-wrap: break-word">Enter a Spotify playlist link (e.g. https://open.spotify.com/playlist/7B2M7EVfDdCMeKbj33dVYd for 
+                my whistling playlist):</p>
             <!--
             0VjIjW4GlUZAMYd2vXMi3b for "Blinding Lights"
             2yPoXCs7BSIUrucMdK5PzV for "Umbrella"
@@ -263,11 +270,11 @@
                     <ul class="dropdown-menu" aria-labelledby="helpDropdown" style="margin-top: 10px">
                         <li><span class="dropdown-item-text">
                             1. Open Spotify and find your desired playlist.<br>
-                            2. Right-click the playlist (or tap the "..." menu on mobile).<br>
+                            2. Right-click the playlist (or open it and tap the "..." menu on mobile).<br>
                             3. Select "Share" then "Copy link to playlist".<br>
                             The link will look something like: <br>
                             "https://open.spotify.com/playlist/7N0gg0AJvQiVr5wCAeDaUw?si=fZhDaSYJST2WCcx3QVJBdw"<br>
-                            5. Paste the link in the input box above.<br>
+                            4. Paste the link in the input box above.<br>
                         </span></li>
                     </ul>
                 </div>
@@ -324,6 +331,8 @@
                 <button id="next-track-button" class="btn btn-success">Next Track</button>
             </div>
         </div>
+        
+        <div id="anchor"></div>
     
         <script>
             const authorizeButton = document.getElementById('authorize-button');
@@ -349,6 +358,8 @@
             const nextTrackButton = document.getElementById('next-track-button');
             const gameEndControls = document.getElementById('game-end-controls');
             const gameFeedback = document.getElementById('game-feedback');
+
+            const anchor = document.getElementById('anchor'); // For auto-scrolling to bottom of page
             
             let spotifyAccessToken = null;
 
@@ -369,6 +380,13 @@
 
             let currentPlaylistTracks = []; // stores all tracks from fetched playlsit
             let currentPlaylistId = ''; // stores the current playlist ID being played
+
+            // Function to scroll to the bottom
+            function scrollToBottom() {
+                setTimeout(() => {
+                    anchor.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, 100); // Small delay to let browser calculate page height
+            }
 
             // Function to extract hash parameters (keep this as is)
             function getHashParams() {
@@ -440,6 +458,7 @@
                         });
 
                         // Skip to next track in the playlist
+                        /*
                         spotifyPlayer.nextTrack().then(() => {
                             console.log('Skipped to next track in playlist.');
                         });
@@ -466,7 +485,38 @@
                         } else {
                             message.textContent = 'Could not get next track. Try submitting playlist again.';
                             console.error('No current track available after skipping.');
+                            return;
                         }
+                        */
+
+                        // instead of .nextTrack(), we're directly picking a song and playing it
+                        const randomTrack = currentPlaylistTracks[
+                            Math.floor(Math.random() * currentPlaylistTracks.length)
+                        ];
+                        correctTrackName = randomTrack.name;
+                        correctTrackUri = randomTrack.uri;
+
+                        const playResponse = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${spotifyAccessToken}`
+                            },
+                            body: JSON.stringify({ uris: [correctTrackUri], position_ms: 0 })
+                        });
+                        if (!playResponse.ok) {
+                            const err = await playResponse.json();
+                            message.textContent = `Playback error: ${err.error?.message}`;
+                            return;
+                        }
+                        
+                        playButton.disabled = false; // show play button
+                        skipButton.disabled = false;
+                        progressContainer.style.display = 'block'; // show progress bar
+                        playerControlsContainer.style.display = 'block';
+                        guessInputContainer.style.display = 'block'; // show guess input
+                        guessTableContainer.style.display = 'flex';
+
                     } catch (error) {
                         console.error('Error advancing to next track:', error);
                         message.textContent = 'Error loading next song. Try submitting playlist again.';
@@ -474,6 +524,8 @@
                 } else {
                     message.textContent = 'Player not ready to load next track.';
                 }
+
+                scrollToBottom(); // scroll to end of page in any case (this one should only trigger on first game setup)
             }
 
             // Define onSpotifyWebPlaybackSDKReady in the global scope
@@ -563,6 +615,7 @@
 
                     // If current playback exceeded 16 seconds
                     if (position >= currentPlayLimit && !state.paused) {
+                        // console.log(`State: ${state.paused}`); // debugging
                         if (progressInterval){
                             clearInterval(progressInterval);
                             progressInterval = null;
@@ -693,7 +746,7 @@
                     return;
                 }
                 if (!spotifyPlayer || !deviceId) {
-                    message.textContent = 'Spotify Player is not yet ready. Please wait a moment and try again. Ensure a Premium account is logged into Spotify app/web.';
+                    message.textContent = 'Spotify Player is not yet ready. Please wait a moment and try again. Ensure a Premium account is logged into Spotify.';
                     console.log('Player:', spotifyPlayer, 'Device ID:', deviceId);
                     // Attempt to re-connect player if it somehow got disconnected
                     if (spotifyPlayer) spotifyPlayer.connect(); 
@@ -749,6 +802,7 @@
                         // Not sure the following is necessary
                         // This is a more robust way to wait for the device to be truly active.
                         // We'll use a Promise and the player_state_changed listener to confirm.
+                        /*
                         const playbackReadyPromise = new Promise(resolve => {
                             const stateChangeListener = (state) => {
                                 if (state && state.device_id === deviceId && !state.paused) { // Check if our device is active and playing
@@ -771,6 +825,7 @@
                             }, 2000); // Wait up to 2 seconds
                         });
                         await playbackReadyPromise; // Wait for player to be ready
+                        */
 
                         // Step 3: Set Repeat mode to playlist
                         console.log('Setting repeat mode to off...');
@@ -828,7 +883,6 @@
                             console.error('Error pausing after starting playlist:', err);
                         });
                         console.log('Playlist successfully requested to play.');
-                        playlistButton.disabled = false; // re-enable this button
 
                         /*
                         message.textContent = 'Playlist loaded and playing!'; // Message for successful start
@@ -867,26 +921,26 @@
                         
                         // Loop to get all tracks (using API's pagination for playlist items)
                         while (true) {
-                            const playlistResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?market=US&fields=items(track(name,uri,artists,album(images)))&limit=${limit}&offset=${offset}`, {
-                                // TODO: this is where the current issue is. Can't figure out why the API call isn't right
-                                headers: {'Authorization': `Bearer ${spotifyAccessToken}`}
-                            });
+                            const playlistResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/items?fields=items(item(name,uri,artists,album(images)))&limit=${limit}&offset=${offset}`,
+                                { headers: {'Authorization': `Bearer ${spotifyAccessToken}`} }
+                            );
 
                             if (!playlistResponse.ok) {
                                 const error = await playlistResponse.json();
-                                message.textContent = `Error fetching playlist tracks: ${error.error.message || 'Unknown error'}`;
+                                message.textContent = `Error fetching playlist tracks: ${error.error.message || 'Unknown error'}. Make sure the playlist is not owned by Spotify.`;
                                 console.error('Error fetching playlist tracks:', error);
+                                playlistButton.disabled = false; // Re-enable playlist button to allow retry
                                 return;
                             }
 
                             const data = await playlistResponse.json();
-                            const items = data.items.filter(item => item.track); // Filter out null tracks
+                            const items = data.items.filter(item => item.item); // Filter out null tracks
 
                             allTracks = allTracks.concat(items.map(item => ({
-                                name: item.track.name,
-                                uri: item.track.uri,
-                                artists: item.track.artists.map(a => a.name).join(', '),
-                                albmArt: item.track.album.images[0]?.url || '' // Get largest album art
+                                name: item.item.name,
+                                uri: item.item.uri,
+                                artists: item.item.artists.map(a => a.name).join(', '),
+                                albmArt: item.item.album.images[0]?.url || '' // Get largest album art
                             })));
 
                             if (data.next) {
@@ -912,6 +966,7 @@
                 } // end if (playlistId != currentPlaylistId)
 
                 // Game start
+                playlistButton.disabled = false; // re-enable this button
                 resetGame();
             });
 
@@ -994,6 +1049,7 @@
                         }
                         
                         console.log(`Guess ${currentGuessNumber}: skipped`);
+                        scrollToBottom(); // scroll to end
                     }).catch(err => console.error('Error pausing playback for skip:', err));
                 } else {
                     message.textContent = 'Spotify Player is not initialized.';
@@ -1093,6 +1149,7 @@
                     }
                 }
                 console.log(`Guess ${currentGuessNumber}: ${guess} - Correct: ${isCorrect}`);
+                scrollToBottom(); // scroll to end
             });
 
             nextTrackButton.addEventListener('click', () => {
