@@ -218,6 +218,74 @@
             margin-top: 0;
             margin-bottom: 4px;
         }
+
+        /* shortcuts popup */
+        #shortcuts-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background-color: #444;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 200;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        #shortcuts-button:hover {
+            background-color: #666;
+        }
+
+        #shortcuts-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #shortcuts-modal-content {
+            background: #2e2e2e;
+            color: #eee;
+            padding: 24px;
+            border-radius: 10px;
+            min-width: 320px;
+            font-family: Candara, Verdana, sans-serif;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+        #shortcuts-modal-content h6 {
+            margin-bottom: 14px;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        #shortcuts-modal-content table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #shortcuts-modal-content td {
+            padding: 5px 8px;
+            vertical-align: middle;
+        }
+        #shortcuts-modal-content td:first-child {
+            width: 80px;
+            text-align: right;
+            padding-right: 14px;
+        }
+        kbd {
+            background: #444;
+            border: 1px solid #666;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.8rem;
+            color: #fff;
+        }
         
     </style>
 </head>
@@ -344,6 +412,25 @@
                 <button id="play-full-song-button" class="btn btn-info" style="display:none;">Play Full Song</button>
             </div>
         </div>
+
+        <!-- Floating help button -->
+        <button id="shortcuts-button" title="Keyboard Shortcuts">?</button>
+
+        <!-- Shortcuts popup -->
+        <div id="shortcuts-modal" style="display:none;">
+            <div id="shortcuts-modal-content">
+                <h6>Keyboard Shortcuts</h6>
+                <table>
+                    <tr><td><kbd>Space</kbd></td><td>Play / Pause</td></tr>
+                    <tr><td><kbd>Enter</kbd></td><td>Submit guess (if typing); submit playlist link</td></tr>
+                    <tr><td><kbd>N</kbd></td><td>Skip guess</td></tr>
+                    <tr><td><kbd>G</kbd></td><td>Give up</td></tr>
+                    <tr><td><kbd>Esc</kbd></td><td>Close suggestions list / this menu</td></tr>
+                    <tr><td><kbd>?</kbd></td><td>Toggle this menu</td></tr>
+                </table>
+                <button id="shortcuts-modal-close" class="btn btn-sm btn-light" style="margin-top:10px; align-self:flex-end">Close</button>
+            </div>
+        </div>
         
         <div id="anchor"></div>
     
@@ -375,6 +462,10 @@
             const playFullSongButton = document.getElementById('play-full-song-button');
 
             const anchor = document.getElementById('anchor'); // For auto-scrolling to bottom of page
+
+            const shortcutsButton = document.getElementById('shortcuts-button');
+            const shortcutsModal = document.getElementById('shortcuts-modal');
+            const shortcutsModalClose = document.getElementById('shortcuts-modal-close');
             
             let spotifyAccessToken = null;
 
@@ -1166,6 +1257,68 @@
                     },
                     body: JSON.stringify({ uris: [correctTrackUri], position_ms: 0 })
                 });
+            });
+
+            // Shortcut menu popup
+            function toggleShortcutsModal() {
+                shortcutsModal.style.display = shortcutsModal.style.display === 'none' ? 'flex' : 'none';
+            }
+
+            shortcutsButton.addEventListener('click', toggleShortcutsModal);
+            shortcutsModalClose.addEventListener('click', toggleShortcutsModal);
+            shortcutsModal.addEventListener('click', (e) => {
+                if (e.target === shortcutsModal) toggleShortcutsModal(); // click backdrop to close
+            });
+
+            // Actually handle keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                const tag = document.activeElement.tagName.toLowerCase();
+                const isTyping = tag === 'input' || tag === 'textarea';
+                const guessFocused = document.activeElement === guessTextInput;
+                const modalOpen = shortcutsModal.style.display !== 'none';
+
+                // Escape: close suggestions or modal
+                if (e.key === 'Escape') {
+                    if (modalOpen) { toggleShortcutsModal(); return; }
+                    if (suggestionsList.style.display !== 'none') {
+                        suggestionsList.style.display = 'none'; return;
+                    }
+                }
+
+                // ? : toggle modal (only when not typing)
+                if (e.key === '?' && !isTyping) {
+                    toggleShortcutsModal(); return;
+                }
+
+                // Don't fire other shortcuts if modal is open
+                if (modalOpen) return;
+
+                // Space: play/pause (only when not typing in any input)
+                if (e.key === ' ' && !isTyping) {
+                    e.preventDefault(); // prevent page scroll
+                    playButton.click(); return;
+                }
+
+                // Enter: submit guess if guess input focused, else submit playlist
+                if (e.key === 'Enter') {
+                    if (guessFocused) {
+                        e.preventDefault();
+                        submitGuessButton.click();
+                    } else if (!isTyping) {
+                        playlistButton.click();
+                    }
+                    return;
+                }
+
+                // N: skip (only when not typing)
+                if (e.key === 'n' && !isTyping) {
+                    skipButton.click(); return;
+                }
+
+                // G: give up (only when not typing)
+                if (e.key === 'g' && !isTyping) {
+                    giveUpButton.click(); return;
+                }
             });
 
         </script>
