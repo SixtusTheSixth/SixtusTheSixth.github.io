@@ -414,7 +414,7 @@
         </div>
 
         <!-- Floating help button -->
-        <button id="shortcuts-button" title="Keyboard Shortcuts">?</button>
+        <button id="shortcuts-button" title="Keyboard Shortcuts" class="d-none d-md-block">?</button>
 
         <!-- Shortcuts popup -->
         <div id="shortcuts-modal" style="display:none;">
@@ -423,7 +423,7 @@
                 <table>
                     <tr><td><kbd>Space</kbd></td><td>Play / Pause</td></tr>
                     <tr><td><kbd>Enter</kbd></td><td>Submit guess (if typing); submit playlist link</td></tr>
-                    <tr><td><kbd>N</kbd></td><td>Skip guess</td></tr>
+                    <tr><td><kbd>N</kbd></td><td>Skip guess; next track</td></tr>
                     <tr><td><kbd>G</kbd></td><td>Give up</td></tr>
                     <tr><td><kbd>Esc</kbd></td><td>Close suggestions list / this menu</td></tr>
                     <tr><td><kbd>?</kbd></td><td>Toggle this menu</td></tr>
@@ -479,7 +479,7 @@
             const GUESS_TIMES = [1000, 2000, 4000, 7000, 11000, 16000]; // Breakpoints in milliseconds for guesses
             const MAX_GUESSES = 6; // Maximum number of guesses allowed
 
-            let gameOver = false; // either correct, max guesses reached, or gave up
+            let gameOver = true; // either correct, max guesses reached, or gave up
             let currentGuessNumber = 0; // To track the current guess number (0-indexed)
             let guessedThisRound = new Set(); // tracks guesses made this round to prevent duplicates
             let correctTrackName = '';
@@ -1283,6 +1283,9 @@
                     if (suggestionsList.style.display !== 'none') {
                         suggestionsList.style.display = 'none'; return;
                     }
+                    if (guessFocused) {
+                        guessTextInput.blur(); return; // unfocus input
+                    }
                 }
 
                 // ? : toggle modal (only when not typing)
@@ -1301,18 +1304,20 @@
 
                 // Enter: submit guess if guess input focused, else submit playlist
                 if (e.key === 'Enter') {
-                    if (guessFocused) {
+                    if (gameOver) {
                         e.preventDefault();
-                        submitGuessButton.click();
-                    } else if (!isTyping) {
                         playlistButton.click();
+                    } else {
+                        submitGuessButton.click();
                     }
                     return;
                 }
 
                 // N: skip (only when not typing)
                 if (e.key === 'n' && !isTyping) {
-                    skipButton.click(); return;
+                    if (!gameOver) skipButton.click(); 
+                    else nextTrackButton.click();
+                    return;
                 }
 
                 // G: give up (only when not typing)
