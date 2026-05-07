@@ -10,10 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const mode1PvMinimaxBtn = document.getElementById('mode1PvMinimax');
     const mode1PvDQNBtn = document.getElementById('mode1PvDQN');
 
-    // Base URL of the tic-tac-toe move API. Local dev hits a uvicorn server on :7860;
-    // production hits the deployed Hugging Face Space (fill in before deploying).
-    const isLocalDev = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
-    const API_BASE = isLocalDev ? 'http://localhost:7860' : 'https://anandaa-tic-tac-toe.hf.space';
+    // Base URL of the netlify proxy for the tic-tac-toe move API
+    // const isLocalDev = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+    // const API_BASE = isLocalDev ? 'http://localhost:8888/.netlify/functions/ttt-proxy' : 'https://aquilifer-netlify-ttt.netlify.app/.netlify/functions/ttt-proxy';
+    const API_BASE = 'https://aquilifer-netlify-ttt.netlify.app/.netlify/functions/ttt-proxy';
 
     let board = ['', '', '', '', '', '', '', '', ''];
     let currentPlayer = 'X';
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let chosenIndex;
         try {
-            const response = await fetch(`${API_BASE}/move`, {
+            const response = await fetch(`${API_BASE}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
