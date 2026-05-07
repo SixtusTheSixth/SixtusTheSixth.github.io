@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Russian Vocab</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+
+        body {
+            background-image: url('/assets/common/paper_bg2.jpeg');
+            font-family: Candara, Verdana, sans-serif;
+            min-height: 95vh;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 80%;
+            height: 60px;
+        }
+
+        .row {
+            justify-content: left;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        a {
+            text-decoration: none;
+            font-family: Candara, Verdana, sans-serif;
+        }
+
+        p, label, input, button, select, span, h1, h2, h3, h4, h5, h6 {
+            font-family: Candara, Verdana, sans-serif;
+        }
+
+        /* --- Flashcard --- */
+        #flashcard-area {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        #flashcard {
+            flex: 1;
+            background: rgba(255, 244, 234, 0.62); /* 255, 240, 213 */
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 40px 36px 32px 36px;
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        #russian-word {
+            font-size: 2.6rem;
+            font-weight: bold;
+            letter-spacing: 0.02em;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+            text-align: center;
+        }
+
+        #answer-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 18px;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        #answer-input {
+            flex: 1;
+            border: 1.5px solid #aaa;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 1.05rem;
+            background: rgba(255,254,244,0.82); /* 255,255,255,0.9 */
+            font-family: Candara, Verdana, sans-serif;
+            transition: border-color 0.15s;
+        }
+        #answer-input:focus {
+            outline: none;
+            border-color: #555;
+        }
+
+        #submit-btn {
+            padding: 8px 22px;
+            font-family: Candara, Verdana, sans-serif;
+            font-size: 1rem;
+        }
+
+        #feedback {
+            margin-top: 14px;
+            font-size: 1rem;
+            min-height: 1.4em;
+            text-align: center;
+            font-weight: 600;
+        }
+        #feedback.correct { color: #2a7a2a; }
+        #feedback.wrong   { color: #b83232; }
+
+        #correct-answer-hint {
+            margin-top: 4px;
+            font-size: 0.9rem;
+            color: #555;
+            min-height: 1.2em;
+            text-align: center;
+        }
+
+        /* --- Vertical progress bar on the right --- */
+        #progress-sidebar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 48px;
+            min-height: 260px;
+        }
+
+        #progress-count {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #444;
+            text-align: center;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        #progress-bar-track {
+            flex: 1;
+            width: 18px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 9px;
+            position: relative;
+            overflow: hidden;
+            min-height: 160px;
+        }
+
+        #progress-bar-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #3a7d44;
+            border-radius: 9px;
+            transition: height 0.4s ease;
+        }
+
+        #progress-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* --- Controls row --- */
+        #controls-row {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+
+        #level-slider-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #level-slider {
+            width: 220px;
+            accent-color: #3a7d44;
+        }
+
+        .req-btn-group label {
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        /* --- Completion overlay --- */
+        #complete-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.93);
+            border-radius: 10px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        #complete-overlay.show {
+            display: flex;
+        }
+        #complete-overlay .complete-icon {
+            font-size: 2.4rem;
+        }
+        #complete-overlay .complete-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #2a7a2a;
+        }
+        #complete-overlay .next-text {
+            font-size: 0.95rem;
+            color: #555;
+        }
+        #complete-overlay .next-countdown {
+            font-weight: bold;
+        }
+
+        /* Card remaining counter */
+        #remaining-info {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 0.78rem;
+            color: #888;
+        }
+
+        /* Correct tally dots under the word */
+        #tally-dots {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .tally-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+            transition: background 0.2s;
+        }
+        .tally-dot.filled {
+            background: #3a7d44;
+        }
+
+        /* Shake animation for wrong answer */
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%      { transform: translateX(-8px); }
+            40%      { transform: translateX(8px); }
+            60%      { transform: translateX(-5px); }
+            80%      { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.35s ease; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 720px;">
+
+        <!-- Header -->
+        <div class="row" style="margin-top: 2%;">
+            <p class="fs-4 fw-bold mb-0">Russian Vocab Practice</p>
+        </div>
+        <div class="row" style="margin-bottom: 18px;">
+            <p class="mb-0" style="color:#444;">Flashcards for the 5000 most common Russian words.</p>
+        </div>
+
+        <!-- Controls -->
+        <div id="controls-row">
+            <!-- Level slider -->
+            <div id="level-slider-group">
+                <label for="level-slider" class="fw-semibold mb-0">Level:</label>
+                <input type="range" id="level-slider" min="1" max="50" value="1">
+                <span id="level-display" class="fw-semibold">1</span>
+            </div>
+
+            <!-- Required correct -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold" style="font-size:0.9rem;">Required correct reps to advance:</span>
+                <div class="btn-group btn-group-sm req-btn-group" role="group" aria-label="Required correct">
+                    <input type="radio" class="btn-check" name="req" id="req1" value="1" autocomplete="off" checked>
+                    <label class="btn btn-outline-secondary" for="req1">1×</label>
+                    <input type="radio" class="btn-check" name="req" id="req2" value="2" autocomplete="off">
+                    <label class="btn btn-outline-secondary" for="req2">2×</label>
+                    <input type="radio" class="btn-check" name="req" id="req3" value="3" autocomplete="off">
+                    <label class="btn btn-outline-secondary" for="req3">3×</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level label -->
+        <div style="margin-bottom: 14px; margin-top: 6px;">
+            <span id="level-label" style="font-size:1rem; color:#444;"></span>
+        </div>
+
+        <!-- Flashcard + progress bar -->
+        <div id="flashcard-area">
+
+            <!-- Flashcard -->
+            <div id="flashcard">
+                <div id="remaining-info"></div>
+
+                <!-- Loading state -->
+                <div id="loading-msg" style="color:#888; font-size:1rem;">Loading vocabulary…</div>
+
+                <!-- Card content (hidden until loaded) -->
+                <div id="card-content" style="display:none; flex-direction:column; align-items:center; width:100%;">
+                    <div id="russian-word"></div>
+                    <div id="tally-dots"></div>
+                    <div id="answer-row">
+                        <input type="text" id="answer-input" placeholder="Type English translation…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                        <button id="submit-btn" class="btn btn-dark">Check</button>
+                    </div>
+                    <div id="feedback"></div>
+                    <div id="correct-answer-hint"></div>
+                </div>
+
+                <!-- Completion overlay -->
+                <div id="complete-overlay">
+                    <div class="complete-icon">✓</div>
+                    <div class="complete-text">Level complete!</div>
+                    <div class="next-text">Moving to next level in <span class="next-countdown" id="countdown">3</span>…</div>
+                    <button class="btn btn-sm btn-outline-dark mt-1" id="next-btn">Next level now →</button>
+                </div>
+            </div>
+
+            <!-- Vertical progress bar -->
+            <div id="progress-sidebar">
+                <div id="progress-count">0<br><span style="color:#aaa">/ 100</span></div>
+                <div id="progress-bar-track">
+                    <div id="progress-bar-fill" style="height:0%"></div>
+                </div>
+                <div id="progress-label">done</div>
+            </div>
+
+        </div><!-- /flashcard-area -->
+
+    </div><!-- /container -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+    <script>
+    // ------ Setup
+    let vocab = [];          // [{russian, translations:[]}]  length 5000
+    let currentLevel = 1;
+    let requiredCorrect = 1;
+    let deck = [];           // active shuffled cards for this level: {russian, translations, tally}
+    let completed = 0;       // unique cards answered correctly >= requiredCorrect times
+    let countdownTimer = null;
+
+    // ------ DOM refs
+    const levelSlider    = document.getElementById('level-slider');
+    const levelDisplay   = document.getElementById('level-display');
+    const levelLabel     = document.getElementById('level-label');
+    const loadingMsg     = document.getElementById('loading-msg');
+    const cardContent    = document.getElementById('card-content');
+    const russianWord    = document.getElementById('russian-word');
+    const tallyDots      = document.getElementById('tally-dots');
+    const answerInput    = document.getElementById('answer-input');
+    const submitBtn      = document.getElementById('submit-btn');
+    const feedback       = document.getElementById('feedback');
+    const hintEl         = document.getElementById('correct-answer-hint');
+    const progressFill   = document.getElementById('progress-bar-fill');
+    const progressCount  = document.getElementById('progress-count');
+    const remainingInfo  = document.getElementById('remaining-info');
+    const completeOverlay= document.getElementById('complete-overlay');
+    const countdownEl    = document.getElementById('countdown');
+    const nextBtn        = document.getElementById('next-btn');
+    const flashcard      = document.getElementById('flashcard');
+
+    // ------ Load vocab from file
+    fetch('/games/russian/russian_frequency_vocab.txt')
+        .then(r => {
+            if (!r.ok) throw new Error('File not found');
+            return r.text();
+        })
+        .then(text => {
+            vocab = text.trim().split('\n').map(line => {
+                const [russian, glossRaw = ''] = line.split('\t');
+                // Parse translations: split on comma, trim, deduplicate, lowercase for comparison
+                const translations = glossRaw.split(',').map(t => t.trim()).filter(Boolean);
+                return { russian: russian.trim(), translations };
+            });
+            loadingMsg.style.display = 'none';
+            cardContent.style.display = 'flex';
+            initLevel(1);
+        })
+        .catch(err => {
+            loadingMsg.textContent = 'Could not load vocabulary file. Make sure russian_frequency_vocab.txt is in the same directory.';
+            loadingMsg.style.color = '#b83232';
+            console.error(err);
+        });
+
+    // ------ Initialize level
+    function initLevel(lvl) {
+        currentLevel = lvl;
+        completed = 0;
+
+        // Build deck: 100 cards with tally counter
+        const start = (lvl - 1) * 100;
+        const slice = vocab.slice(start, start + 100);
+        deck = shuffle(slice.map(v => ({ ...v, tally: 0 })));
+
+        updateLevelUI();
+        updateProgress();
+        showCard();
+        hideComplete();
+    }
+
+    function updateLevelUI() {
+        const start = (currentLevel - 1) * 100 + 1;
+        const end   = currentLevel * 100;
+        levelDisplay.textContent = currentLevel;
+        levelSlider.value = currentLevel;
+        levelLabel.textContent = `Level ${currentLevel}: words ${start}–${end}`;
+    }
+
+    // ------ Card display
+    function showCard() {
+        if (deck.length === 0) return;
+        const card = deck[0];
+        russianWord.textContent = card.russian;
+        renderTally(card.tally);
+        remainingInfo.textContent = `${deck.length} card${deck.length !== 1 ? 's' : ''} left`;
+        feedback.textContent = '';
+        feedback.className = '';
+        hintEl.textContent = '';
+        answerInput.value = '';
+        answerInput.disabled = false;
+        submitBtn.disabled = false;
+        answerInput.focus();
+    }
+
+    function renderTally(tally) {
+        tallyDots.innerHTML = '';
+        if (requiredCorrect <= 1) return; // don't show dots when req=1
+        for (let i = 0; i < requiredCorrect; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'tally-dot' + (i < tally ? ' filled' : '');
+            tallyDots.appendChild(dot);
+        }
+    }
+
+    // ------ Answer checking
+    function normalise(s) {
+        return s.trim().toLowerCase();
+    }
+
+    function escapeRegex(s) {
+        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // "be able (to)" -> /^be able(?: to)?$/   (preceding space absorbed)
+    // "most(ly)"     -> /^most(?:ly)?$/
+    function translationToRegex(t) {
+        const s = normalise(t);
+        let pattern = '';
+        let buf = '';
+        let i = 0;
+        while (i < s.length) {
+            if (s[i] === '(') {
+                const close = s.indexOf(')', i);
+                if (close === -1) { buf += s.slice(i); break; }
+                let prefix = '';
+                while (buf.endsWith(' ')) {
+                    prefix = ' ' + prefix;
+                    buf = buf.slice(0, -1);
+                }
+                pattern += escapeRegex(buf);
+                pattern += '(?:' + escapeRegex(prefix + s.slice(i + 1, close)) + ')?';
+                buf = '';
+                i = close + 1;
+            } else {
+                buf += s[i];
+                i++;
+            }
+        }
+        pattern += escapeRegex(buf);
+        return new RegExp('^' + pattern + '$');
+    }
+
+    function checkAnswer() {
+        if (deck.length === 0) return;
+        const card = deck[0];
+        const userAns = normalise(answerInput.value);
+
+        if (!userAns) return;
+
+        const isCorrect = card.translations.some(t => translationToRegex(t).test(userAns));
+
+        if (isCorrect) {
+            card.tally++;
+            feedback.textContent = 'Correct!';
+            feedback.className = 'correct';
+            if (card.translations.length < 2) {
+                hintEl.textContent = '';
+            } else {
+                const allAns = card.translations.join(', ');
+                hintEl.textContent = `Acceptable answers: ${allAns}`;
+            }
+            answerInput.disabled = true;
+            submitBtn.disabled = true;
+
+            if (card.tally >= requiredCorrect) {
+                // Card fully done — remove from deck
+                deck.shift();
+                completed++;
+                updateProgress();
+                setTimeout(() => {
+                    if (completed >= 100) {
+                        showComplete();
+                    } else {
+                        showCard();
+                    }
+                }, 800);
+            } else {
+                // Needs more correct answers — send to back
+                deck.shift();
+                deck.push(card);
+                updateProgress();
+                setTimeout(showCard, 800);
+            }
+        } else {
+            // Wrong — show hint briefly, send to back
+            feedback.textContent = 'Not quite.';
+            feedback.className = 'wrong';
+            const allAns = card.translations.join(', ');
+            hintEl.textContent = `Answer: ${allAns}`;
+            answerInput.disabled = true;
+            submitBtn.disabled = true;
+            flashcard.classList.add('shake');
+            flashcard.addEventListener('animationend', () => flashcard.classList.remove('shake'), { once: true });
+            // Reset tally on wrong
+            card.tally = 0;
+            renderTally(0);
+            // Send to back
+            deck.shift();
+            deck.push(card);
+            updateProgress();
+            setTimeout(showCard, 1600);
+        }
+    }
+
+    // ------ Progress bar
+    function updateProgress() {
+        const pct = (completed / 100) * 100;
+        progressFill.style.height = pct + '%';
+        progressCount.innerHTML = `${completed}<br><span style="color:#aaa">/ 100</span>`;
+        if (deck.length > 0) {
+            remainingInfo.textContent = `${deck.length} card${deck.length !== 1 ? 's' : ''} left`;
+        }
+    }
+
+    // ------- Level complete
+    function showComplete() {
+        completeOverlay.classList.add('show');
+        let n = 3;
+        countdownEl.textContent = n;
+        clearInterval(countdownTimer);
+        countdownTimer = setInterval(() => {
+            n--;
+            countdownEl.textContent = n;
+            if (n <= 0) {
+                clearInterval(countdownTimer);
+                advanceLevel();
+            }
+        }, 1000);
+    }
+
+    function hideComplete() {
+        completeOverlay.classList.remove('show');
+        clearInterval(countdownTimer);
+    }
+
+    function advanceLevel() {
+        if (currentLevel < 50) {
+            initLevel(currentLevel + 1);
+        } else {
+            // All 50 levels done!
+            hideComplete();
+            russianWord.textContent = '🎉';
+            feedback.textContent = 'You completed all 50 levels!';
+            feedback.className = 'correct';
+            hintEl.textContent = '';
+            answerInput.disabled = true;
+            submitBtn.disabled = true;
+        }
+    }
+
+    // ------ Utility: Fisher-Yates shuffle 
+    function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    // ------ Event listeners
+    submitBtn.addEventListener('click', checkAnswer);
+
+    answerInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') checkAnswer();
+    });
+
+    levelSlider.addEventListener('input', () => {
+        const lvl = parseInt(levelSlider.value);
+        levelDisplay.textContent = lvl;
+        levelLabel.textContent = `Level ${lvl}: words ${(lvl-1)*100+1}–${lvl*100}`;
+    });
+
+    levelSlider.addEventListener('change', () => {
+        const lvl = parseInt(levelSlider.value);
+        if (lvl !== currentLevel) initLevel(lvl);
+    });
+
+    document.querySelectorAll('input[name="req"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            requiredCorrect = parseInt(radio.value);
+            // Re-init current level to reset tallies
+            initLevel(currentLevel);
+        });
+    });
+
+    nextBtn.addEventListener('click', () => {
+        clearInterval(countdownTimer);
+        advanceLevel();
+    });
+    </script>
+</body>
+</html>
