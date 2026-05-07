@@ -260,7 +260,8 @@
             <p class="fs-4 fw-bold mb-0">Russian Vocab Practice</p>
         </div>
         <div class="row" style="margin-bottom: 18px;">
-            <p class="mb-0" style="color:#444;">Flashcards for the 5000 most common Russian words.</p>
+            <p class="mb-0" style="color:#444;">Flashcards for the 5000 most common Russian words, split into 100-card levels.
+                Use Shift + Enter to skip a card.</p>
         </div>
 
         <!-- Controls -->
@@ -477,12 +478,12 @@
         return new RegExp('^' + pattern + '$');
     }
 
-    function checkAnswer() {
+    function checkAnswer(canSkip = false) {
         if (deck.length === 0) return;
         const card = deck[0];
         const userAns = normalise(answerInput.value);
 
-        if (!userAns) return;
+        if (!userAns && !canSkip) return; // if shift + enter was pressed, allow submission of a blank answer
 
         const isCorrect = card.translations.some(t => translationToRegex(t).test(userAns));
 
@@ -599,7 +600,7 @@
     submitBtn.addEventListener('click', checkAnswer);
 
     answerInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter') checkAnswer();
+        if (e.key === 'Enter') checkAnswer(e.shiftKey);
     });
 
     levelSlider.addEventListener('input', () => {
