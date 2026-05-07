@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Base URL of the tic-tac-toe move API. Local dev hits a uvicorn server on :7860;
     // production hits the deployed Hugging Face Space (fill in before deploying).
     const isLocalDev = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
-    const API_BASE = isLocalDev ? 'http://localhost:7860' : 'REPLACE_ME';
+    const API_BASE = isLocalDev ? 'http://localhost:7860' : 'https://anandaa-tic-tac-toe.hf.space';
 
     let board = ['', '', '', '', '', '', '', '', ''];
     let currentPlayer = 'X';
