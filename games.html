@@ -26,6 +26,27 @@
             flex-wrap: wrap;
         }
 
+        .post-list {
+            list-style-position: outside;
+            padding-left: 1.4rem;
+            margin-left: 0;
+        }
+
+        .post-list li {
+            margin-bottom: 0.75rem;
+        }
+
+        .post-list li::marker {
+            font-size: 1.25em;
+            color: #333;
+        }
+
+        @media (max-width: 576px) {
+            .post-list { padding-left: 1.8rem; }
+            .post-list li::marker { font-size: 1.35em; }
+            .post-list a, .post-list .nav-link { font-size: 1.05rem; padding: 0; display: inline; }
+        }
+
         a {
             text-decoration: none;
             font-family:Candara, Verdana, sans-serif;
@@ -41,13 +62,9 @@
             <p class="fs-4 fw-bold">Games</p>
         </div>
         <div class="row" style="font-family:Candara, Verdana, sans-serif">
-            <ul>
+            <ul class="post-list">
                 <li><a class="nav-link fs-5" href="/codenames/codenames.html">codenames cheatbot</a></li>
-            </ul>
-            <ul>
                 <li><a class="nav-link fs-5" href="/spotify_heardle/">Spotify Heardle</a></li>
-            </ul>
-            <ul>
                 <li><a class="nav-link fs-5" href="/games/russian/">russian vocab practice</a></li>
             </ul>
         </div>
