@@ -311,7 +311,7 @@
 пыта́ться	try, attempt
 основно́й	main, fundamental
 те́ло	body
-посмотре́ть	watch, look
+посмотре́ть	watch, look (at)
 жена́	wife
 открыва́ть	open
 пора́	it's time
@@ -319,7 +319,7 @@
 письмо́	letter
 о́бщество	society
 состоя́ние	condition, state
-настоя́щий	present
+настоя́щий	present, real, genuine
 ве́чер	evening
 существова́ть	exist, be
 наза́д	back, ago
@@ -338,7 +338,7 @@
 зате́м	then
 вести́	lead, drive
 стол	table
-причи́на	cause
+причи́на	cause, reason
 прое́кт	project, draft
 у́лица	street
 ры́нок	market
@@ -348,7 +348,7 @@
 по́мнить	remember, recall
 называ́ть	name
 то́чка	point
-нельзя́	impossible
+нельзя́	impossible, (it is) forbidden
 начина́ться	begin
 да́нный	given, the
 подходи́ть	come, approach
@@ -362,9 +362,9 @@
 ино́й	other, different
 бе́лый	white
 наконе́ц	finally
-куда́	where
-изве́стный	known
-центр	centre
+куда́	(to) where
+изве́стный	known, famous
+центр	center
 цена́	price
 сын	son
 забыва́ть	forget
@@ -379,7 +379,7 @@
 занима́ться	study, work
 огро́мный	huge
 среди́	among
-ма́ма	mum
+ма́ма	mom, mum
 вели́кий	great
 коли́чество	quantity
 чу́вство	feeling
@@ -392,7 +392,7 @@
 пять	five
 зада́ча	task
 быва́ть	be, visit, happen
-получа́ться	come out, be
+получа́ться	come out, be, turn out
 доста́точно	enough
 си́льный	strong, powerful
 мне́ние	opinion
@@ -415,7 +415,7 @@
 попада́ть	hit, get
 слы́шать	hear
 поду́мать	think
-ходи́ть	walk
+ходи́ть	walk, go
 окно́	window
 ря́дом	near
 план	plan
@@ -464,7 +464,7 @@
 легко́	easy, easily
 прави́тельство	government
 боя́ться	fear, be afraid
-суд	court
+суд	court, trial
 президе́нт	president
 возмо́жно	possibly, may
 занима́ть	borrow, occupy the position of, be
@@ -491,7 +491,7 @@
 определя́ть	define, determine
 спо́соб	way, means
 тече́ние	course, current
-счѐт	account, bill
+счѐт	account, bill, check
 живо́й	alive, live
 встава́ть	stand (up), get up
 случа́ться	happen
@@ -501,7 +501,7 @@
 разгово́р	talk, conversation
 сей	this
 еди́нственный	only
-метр	metre
+метр	meter, metre
 при́нцип	principle
 сайт	site
 пра́вый	right
@@ -931,7 +931,7 @@
 пря́мо	straight
 режи́м	mode, regime
 во́ля	will
-киломе́тр	kilometre
+киломе́тр	kilometer, kilometre
 расти́	grow
 звать	call
 пра́вильный	correct
@@ -1020,7 +1020,7 @@
 прода́жа	sale
 ра́мка	frame, scope
 дека́брь	December
-теа́тр	theatre
+теа́тр	theater, theatre
 университе́т	university
 произведе́ние	production, creative work
 СССР	USSR
@@ -1993,7 +1993,7 @@
 бла́го	good, amenity
 нефть	oil
 акаде́мия	academy
-сантиме́тр	centimetre
+сантиме́тр	centimeter, centimetre
 живо́т	stomach
 карти́нка	picture
 шту́ка	thing, item
@@ -2690,7 +2690,7 @@
 жале́ть	regret
 обвине́ние	accusation
 христиа́нский	Christian
-литр	litre
+литр	liter, litre
 превыша́ть	exceed
 уче́бник	textbook
 недоста́точный	insufficient, not enough
@@ -4101,7 +4101,7 @@
 чрезвыча́йный	extraordinary, extreme
 симпа́тия	affection, sympathy
 уста́лый	tired
-мм	mm, millimetre
+мм	mm, millimeter, millimetre
 долгосро́чный	long-term
 огоро́д	allotment
 кисть	brush, palm
@@ -4464,7 +4464,7 @@
 проща́ние	farewell
 цирк	circus
 приземля́ться	land
-см	cm, centimetre
+см	cm, centimeter, centimetre
 ни́щий	beggar
 посы́лка	parcel
 ве́рующий	believer
@@ -4709,7 +4709,7 @@
 продавщи́ца	shop assistant (female)
 брошю́ра	brochure
 алфави́т	alphabet
-однокла́ссник	schoolmate
+однокла́ссник	schoolmate, classmate
 сла́дко	sweet(ly)
 негро́мко	not loud, quietly
 втроѐм	three (people)
