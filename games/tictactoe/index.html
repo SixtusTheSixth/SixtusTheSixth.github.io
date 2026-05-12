@@ -7,12 +7,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <style>
         body {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            height: 100vh;
             margin: 0;
             background-image: url('/assets/common/paper_bg2.jpeg');
+            min-height: 100vh;
         }
         
         a {
@@ -28,37 +25,30 @@
 
         .game-container {
             width: 100%;
-            max-width: 960px; /* Wider container so the mode selector can stay on one line */
+            max-width: 960px;
+            margin: 0 auto;
             padding: 15px;
             text-align: center;
-            /* flex-grow: 1; /* Allows it to take up available space */
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-        }
-
-        @media (min-width: 768px) {
-            .game-container {
-                max-width: 960px;
-            }
         }
 
         .mode-selector {
             width: 100%;
             display: flex;
-            flex-wrap: nowrap;
-            justify-content: flex-start;
-            overflow-x: auto;
-            padding: 0 0 0.25rem 0.25rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0 0 0.25rem 0;
         }
 
         .mode-selector .btn {
             white-space: nowrap;
             font-size: 0.8rem;
             padding: 0.375rem 0.55rem;
-            flex: 0 0 auto;
             box-shadow: none !important;
+            border-radius: 0.25rem !important;
         }
 
         .mode-selector .btn:hover,
@@ -195,15 +185,79 @@
         .win-diag-1 {
             transform: translate(-50%, -50%) rotate(-45deg); /* Rotate in the opposite direction */
         }
+
+        #explanation {
+            width: 100%;
+            text-align: left;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        #explanation .accordion-button {
+            font-family: Candara, Verdana, sans-serif;
+            font-weight: bold;
+            background-color: rgba(244, 234, 214, 0.9);
+            color: black;
+        }
+
+        #explanation .accordion-button:focus {
+            box-shadow: none;
+        }
+
+        #explanation .accordion-body {
+            font-family: Candara, Verdana, sans-serif;
+            background-color: rgba(255, 244, 234, 0.3);
+        }
+
+        pre.code-block {
+            background-color: rgba(225, 220, 205, 0.55);
+            border-left: 3px solid #a89880;
+            border-radius: 0 4px 4px 0;
+            padding: 0.9rem 1.1rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.82rem;
+            line-height: 1.65;
+            overflow-x: auto;
+            margin: 1rem 0;
+            white-space: pre;
+        }
+
+        .code-comment { color: #7a7060; }
+        .code-keyword { color: #8b3a3a; font-weight: bold; }
+
+        .explanation-subhead {
+            font-family: Candara, Verdana, sans-serif;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 1.25rem;
+            margin-bottom: 0.4rem;
+        }
+
+        #explanation .accordion-body p,
+        #explanation .accordion-body li {
+            line-height: 1.7;
+        }
+
+        #explanation .accordion-body ul {
+            padding-left: 1.4rem;
+        }
+
+        #explanation .accordion-body code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85em;
+            background-color: rgba(200, 195, 180, 0.35);
+            border-radius: 3px;
+            padding: 0.1em 0.35em;
+        }
     </style>
 </head>
 <body>
-    <div class="game-container d-flex flex-column align-items-center">
-        <div class="row" style="margin-top: 2%; font-family:Candara, Verdana, sans-serif">
-            <p class="fs-4 fw-bold">Tic Tac Toe</p>
+    <div class="game-container">
+        <div class="mt-3" style="font-family:Candara, Verdana, sans-serif">
+            <p class="fs-4 fw-bold mb-2">Tic Tac Toe</p>
         </div>
-        <div class="mb-3 d-flex flex-column align-items-center">
-            <div class="btn-group mb-3 mode-selector" role="group" aria-label="Game Mode Selection">
+        <div class="mb-3 d-flex flex-column align-items-center" style="width: 100%;">
+            <div class="mb-3 mode-selector" role="group" aria-label="Game Mode Selection">
                 <input type="radio" class="btn-check" name="game-mode" id="mode2Players" autocomplete="off" checked>
                 <label class="btn btn-outline-primary" for="mode2Players">2 Players</label>
 
@@ -230,6 +284,284 @@
 
         <div id="gameResultInfo" class="game-result-info mt-3" style="display: none;"></div>
         <button id="nextGameBtn" class="btn btn-primary mt-3" style="display: none;">Next Game</button>
+        
+        <div id="explanation" class="accordion">
+            <!-- 0. Demo Explanation-->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingDemo">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapseDemo"
+                            aria-expanded="false" aria-controls="collapseDemo">
+                        0. Demo Explanation
+                    </button>
+                </h2>
+                <div id="collapseDemo" class="accordion-collapse collapse"
+                    aria-labelledby="headingDemo" data-bs-parent="#explanation">
+                    <div class="accordion-body">
+                        <p>
+                            This page is a demo of methods to computationally solve a simple game. Tic-Tac-Toe is a good example
+                            because it's easy to see what moves are good or bad and to debug when a strategy is not working.
+                            I started with Ultimate Tic-Tac-Toe, but since I'm not very good at that myself, I decided to implement
+                            each algorithm with regular tic-tac-toe first to make sure I could get them working correctly.
+                        </p>
+                        <p>
+                            Note that for the 1-player modes, when you play for the first time the server may have to start up,
+                            which takes about 20 seconds. After that startup, the AI opponents should respond within a second.
+                        </p>
+                        <p>
+                            Also, on this page, X always plays first, and in the 1-player modes each game alternates between you
+                            playing as X and the computer playing as X.
+                        </p>
+                        <p>
+                            There are a few simple opponents to play against, which I created as baselines:
+                        </p>
+                        <ul>
+                            <li>2-Player mode: Play against a friend (or yourself) on the same device.</li>
+                            <li>1P vs Random: Play against an opponent that chooses moves uniformly at random from the available spaces.</li>
+                            <li>1P vs Perfect: The opponent that always makes the optimal move. I hardcoded this myself.</li>
+                            <li>1P vs Beatable: The (hardcoded) opponent that can be beaten with the right strategy when you're X. See if you
+                                can figure this one out. Many humans can be beaten with the same strategy, even if they think they
+                                know how to play tic-tac-toe well.</li>
+                        </ul>
+                        <p>
+                            There are also a few interesting AI opponents: the minimax algorithm, deep Q-networks and (coming soon) 
+                            Monte Carlo tree search and policy gradient-based methods like PPO. These are explained in the sections below.
+                            Generally, minimax "looks a few moves ahead" and finds the path to the best outcome, whereas the rest are 
+                            reinforcement learning (RL) methods, which means they have learned by playing games
+                            against themselves and other opponents and improving over time. 
+                        </p>
+                        <p>
+                            If you want to try any of them out for yourself, the code is available at <a href="https://github.com/SixtusTheSixth/tic-tac-toe" target="_blank">https://github.com/SixtusTheSixth/tic-tac-toe</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. Minimax -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingMinimax">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapseMinimax"
+                            aria-expanded="false" aria-controls="collapseMinimax">
+                        1. Minimax
+                    </button>
+                </h2>
+                <div id="collapseMinimax" class="accordion-collapse collapse"
+                    aria-labelledby="headingMinimax" data-bs-parent="#explanation">
+                    <div class="accordion-body">
+
+                        <p>
+                            Minimax is a recursive algorithm for choosing optimal moves in a two-player (zero-sum) game.
+                            It relies on the assumption that your opponent will always make the best move
+                            available to them, so you should choose the move that is best assuming worst-case opponent behavior.
+                        </p>
+
+                        <p class="explanation-subhead">The game tree</p>
+                        <p>
+                            Any game state, here a configuration of the board, can be thought of as a node in a tree. Its children are the positions reachable
+                            by each legal move, their children are the positions reachable one move later, and so on down to
+                            terminal states, or positions where the game is over. Terminal states have known scores: in this
+                            implementation, <code>+10</code> for a win, <code>-10</code> for a loss, and <code>-5</code>
+                            for a draw. (Why <code>-5</code> and not <code>0</code> for a draw? A draw is better than a loss
+                            but worse than a win, so giving it a negative value causes the algorithm to avoid draws when a
+                            win is available. We'll revisit score design more carefully in the RL sections, where it turns
+                            out to be more important.)
+                        </p>
+                        <p>
+                            From non-terminal positions, scores propagate upward by alternating logic: on your turn, you pick
+                            the child with the <em>maximum</em> score (you want to win); on the opponent's turn, they pick the
+                            child with the <em>minimum</em> score (they want you to lose). The root's score is therefore the
+                            outcome of optimal play from both sides.
+                        </p>
+
+        <pre class="code-block"><span class="code-keyword">function</span> minimax(board, is_my_turn):
+            <span class="code-keyword">if</span> game_over(board):
+                <span class="code-keyword">return</span> terminal_score(board)   <span class="code-comment"># +10, -10, or -5</span>
+
+            scores = [minimax(make_move(board, mv), not is_my_turn)
+                    <span class="code-keyword">for</span> mv <span class="code-keyword">in</span> legal_moves(board)]
+
+            <span class="code-keyword">return</span> max(scores) <span class="code-keyword">if</span> is_my_turn <span class="code-keyword">else</span> min(scores)</pre>
+
+                        <p>
+                            Tic-tac-toe has at most 9 × 8 × 7 × … × 1 = 362,880 possible move sequences, but because the
+                            game can end before all squares are filled, the actual tree is considerably smaller, around
+                            255,000 nodes. That's small enough to solve completely from the very first move in less than a second.
+                        </p>
+
+                        <p class="explanation-subhead">Negamax: a cleaner formulation</p>
+                        <p>
+                            The two-branch structure above (maximize on my turn, minimize on theirs) is a bit redundant.
+                            In a zero-sum game, my score and my opponent's score always sum to zero:
+                            <code>score(position, me) = -score(position, opponent)</code>.
+                            This means minimizing the opponent's score is the same as maximizing the negation of their score.
+                            <strong>Negamax</strong> exploits this: always maximize, but negate the child's returned score
+                            before comparing. The two cases collapse into one:
+                        </p>
+
+        <pre class="code-block"><span class="code-keyword">function</span> negamax(board, cur_player):
+            <span class="code-keyword">if</span> game_over(board):
+                <span class="code-keyword">return</span> score_from_cur_player_perspective(board)
+
+            <span class="code-keyword">return</span> max(
+                <span class="code-comment"># negate child score because it's from the other player's perspective</span>
+                -negamax(make_move(board, mv), other_player)
+                <span class="code-keyword">for</span> mv <span class="code-keyword">in</span> legal_moves(board)
+            )</pre>
+
+                        <p>
+                            You can see this directly in the implementation: <code>score = -childScore</code> on every
+                            recursive return, and the function always takes the maximum. Beyond being more concise, negamax
+                            makes alpha-beta pruning (next section) easier to implement correctly, since there's only one
+                            case to handle.
+                        </p>
+
+                        <p class="explanation-subhead">One practical shortcut</p>
+                        <p>
+                            Even though tic-tac-toe is small enough to search exhaustively from move one, the implementation
+                            uses a cutoff: <code>N_AB = 8</code>, meaning negamax only runs for the last 8 moves of the game.
+                            When the board is empty, the algorithm plays a random corner instead. This might look like a lazy
+                            optimization, but it mirrors a genuinely important constraint in harder games — chess, Go, and most
+                            real-world problems are far too large to search to the end from any non-trivial position. Playing a
+                            corner first is also a strong choice in its own right: it creates more forking threats than a center
+                            opening and puts more pressure on the opponent.
+                        </p>
+                        <p>
+                            The <strong>1P vs Perfect</strong> mode above uses a hardcoded optimal strategy (not minimax),
+                            which you can verify is unbeatable. The <strong>1P vs Minimax</strong> mode uses the implementation
+                            described here — also unbeatable in practice for tic-tac-toe, but by search rather than by
+                            hard-coded rules.
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Alpha-Beta Pruning -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingAB">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapseAB"
+                            aria-expanded="false" aria-controls="collapseAB">
+                        2. Optimization: Alpha-Beta Pruning
+                    </button>
+                </h2>
+                <div id="collapseAB" class="accordion-collapse collapse"
+                    aria-labelledby="headingAB" data-bs-parent="#explanation">
+                    <div class="accordion-body">
+
+                        <p>
+                            Minimax is correct, but it does redundant work. Consider a position where you've already found
+                            a move that guarantees a score of, say, <code>+5</code>. While exploring a different branch,
+                            you find that it gives the opponent a response that scores <code>-8</code> from your perspective.
+                            You can stop exploring that branch immediately&mdash;you already have something better, so you'd
+                            never choose this line regardless of what else it contains. Alpha-beta pruning formalizes this
+                            reasoning and applies it at every node in the tree.
+                        </p>
+
+                        <p class="explanation-subhead">Alpha and beta</p>
+                        <p>
+                            At any point in the search, we track two bounds:
+                        </p>
+                        <ul>
+                            <li>
+                                <strong>Alpha (α)</strong>: the best score the current player can already guarantee from
+                                moves examined so far&mdash;a <em>floor</em> on what we'll accept.
+                            </li>
+                            <li>
+                                <strong>Beta (β)</strong>: the best score the opponent can already guarantee&mdash;from our
+                                perspective, a <em>ceiling</em> on what we can reach given best play by the opponent.
+                            </li>
+                        </ul>
+                        <p>
+                            We pass both bounds into each recursive call. If we ever find a move that scores above β,
+                            we can prune: the opponent has a better option elsewhere in the tree and would never let
+                            this position be reached. Similarly, any move that scores at or below α can't improve on
+                            what we've already found and is skipped.
+                        </p>
+
+        <pre class="code-block"><span class="code-keyword">function</span> negamax_ab(board, cur_player, α, β):
+            <span class="code-keyword">if</span> game_over(board):
+                <span class="code-keyword">return</span> score_from_cur_player_perspective(board)
+
+            <span class="code-keyword">for</span> mv <span class="code-keyword">in</span> legal_moves(board):
+                score = -negamax_ab(make_move(board, mv), other_player, -β, -α)
+
+                <span class="code-keyword">if</span> score &gt;= β: <span class="code-keyword">return</span> score   <span class="code-comment"># beta cutoff: prune remaining moves</span>
+                α = max(α, score)           <span class="code-comment"># tighten the floor</span>
+
+            <span class="code-keyword">return</span> α</pre>
+
+                        <p>
+                            Notice that when recursing, the bounds are passed as <code>-β, -α</code> (negated and swapped).
+                            This is the negamax convention: since the child's score is negated before returning, the
+                            child's floor and ceiling are the negations of the parent's ceiling and floor.
+                        </p>
+
+                        <p class="explanation-subhead">How much does it help?</p>
+                        <p>
+                            In the worst case (moves always examined in the worst order), alpha-beta does no better than
+                            plain minimax and visits the same O(b<sup>d</sup>) nodes, where <em>b</em> is the branching
+                            factor and <em>d</em> is the depth. In the best case, when the best move is always examined
+                            first, it cuts the effective branching factor from <em>b</em> to roughly √<em>b</em>, which
+                            means you can search <em>twice as deep</em> for the same computational cost. In practice,
+                            with reasonable move ordering, the improvement is closer to the best case than the worst.
+                        </p>
+                        <p>
+                            For tic-tac-toe this doesn't matter much, since the tree is small enough either way. But this is
+                            the same algorithm that made chess engines tractable long before neural networks entered the
+                            picture, and it's still used in combination with learned evaluation functions in modern engines.
+                            The version here is already sufficient to make the minimax player unbeatable: try it above.
+                        </p>
+
+                        <p class="explanation-subhead">The ceiling constraint in practice</p>
+                        <p>
+                            One subtlety worth noting: the implementation code uses <code>lowerBound</code> and
+                            <code>upperBound</code> rather than the conventional α/β naming, initialized to
+                            <code>-9</code> and <code>+9</code> at the root (just outside the range of achievable
+                            scores). A score above the upper bound causes an immediate cutoff and returns the
+                            full move sequence accumulated so far; a score below the lower bound is simply skipped.
+                            This is standard — the naming is cosmetic.
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Placeholder items for future sections -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingRL">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapseRL"
+                            aria-expanded="false" aria-controls="collapseRL">
+                        3. RL Basics &amp; Q-Learning
+                    </button>
+                </h2>
+                <div id="collapseRL" class="accordion-collapse collapse"
+                    aria-labelledby="headingRL" data-bs-parent="#explanation">
+                    <div class="accordion-body">
+                        <p><em>Coming soon.</em></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingDQN">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapseDQN"
+                            aria-expanded="false" aria-controls="collapseDQN">
+                        4. Deep Q-Networks
+                    </button>
+                </h2>
+                <div id="collapseDQN" class="accordion-collapse collapse"
+                    aria-labelledby="headingDQN" data-bs-parent="#explanation">
+                    <div class="accordion-body">
+                        <p><em>Coming soon.</em></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
